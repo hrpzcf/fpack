@@ -69,7 +69,7 @@ int parse_cmds(int argc, char **argvs) {
     const char *SUBOF_FAKE = "j:p:t:osa";  // 主命令[fake]的子选项
     const char *SUBOF_EXTR = "p:t:n:o";    // 主命令[extr]的子选项
     // 使用帮助信息
-    const char *USEAGE =
+    const char *PACK_USEAGE =
         "用法: %s [子命令] [选项[, 参数]]...\n\n"
         "可用的子命令:\n"
         "   [-v]\t\t显示程序版本信息及其他信息。\n"
@@ -145,7 +145,7 @@ int parse_cmds(int argc, char **argvs) {
     split_ext(exec_name, PATH_MSIZE, NULL, 0, base_name(NULL, 0, argvs[0]),
               '.');
     if (!strcmp(argvs[1], MAIN_HELP)) {
-        printf(USEAGE, exec_name);
+        printf(PACK_USEAGE, exec_name);
         return EXIT_CODE_SUCCESS;
     } else if (!strcmp(argvs[1], MAIN_VERS)) {
         printf(AUTHOR_INFO "\n" BUILT_INFO "\n", exec_name);
