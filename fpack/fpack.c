@@ -858,7 +858,7 @@ fpack_t *fpack_fakej_make(const char *pf_path, const char *jpeg_path,
     jpeg_netsize = realsizeofj(fhd_jpeg, fake_jpeg_size, &buf_frw);
     rewind(fhd_jpeg);
     if (jpeg_netsize == JPEG_INVALID) {
-        printf(PACK_WARN "这不是一个有效的JPEG图像\n");
+        printf(PACK_WARN "无效的JPEG图像：%s\n", jpeg_path);
         exit(EXIT_CODE_FAILURE);
     } else if (jpeg_netsize == JPEG_ERRORS) {
         PRINT_ERROR_AND_ABORT("验证JPEG图像过程中发生错误");
