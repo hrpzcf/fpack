@@ -19,15 +19,14 @@
 #ifdef _WIN32
 #define fseek_fpack _fseeki64
 #define ftell_fpack _ftelli64
-#define fopen_fpack fopen
 #define inline _inline
 int str_a2u(char buf[], int bfsize, char *ansiSTR);
 int str_u2a(char buf[], int bfsize, char *utf8STR);
-#else /* else posix */
+#else  // else posix
 #define fseek_fpack fseek
 #define ftell_fpack ftell
-#define fopen_fpack fopen64
-#endif  // _WIN32
+#endif  // end of _WIN32
+#define fopen_fpack fopen
 
 // 区分不同平台上printf中的int64_t格式化占位符
 #ifndef _WIN32

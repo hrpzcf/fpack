@@ -145,7 +145,7 @@ int parse_cmds(int argc, char **argvs) {
         printf(USEAGE, exec_name);
         return EXIT_CODE_SUCCESS;
     } else if (!strcmp(argvs[1], MAIN_VERS)) {
-        printf(AUTHOR_INFO "\n" BUILT_INFO, exec_name);
+        printf(AUTHOR_INFO "\n" BUILT_INFO "\n", exec_name);
         return EXIT_CODE_SUCCESS;
     } else if (!strcmp(argvs[1], MAIN_PACK)) {
         while ((sub_opt = getopt(argc, argvs, SUBOF_PACK)) != -1) {
