@@ -3,10 +3,9 @@ msbuild/.vs
 msbuild/x64
 msbuild/Debug
 msbuild/Release
-build
+build/
 execfile/
 *.exe
-*.pk
-*.pack
+*.pfs
 /useage.txt
 /msbuild/*.jpeg
