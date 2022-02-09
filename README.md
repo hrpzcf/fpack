@@ -19,10 +19,12 @@
 # 源代码编译方法
 
 源代码仓库：
-GITEE: https://gitee.com/hrpzcf/fpack
-GITHUB: https://github.com/hrpzcf/fpack
+- GITEE: https://gitee.com/hrpzcf/fpack
+- GITHUB: https://github.com/hrpzcf/fpack
 
-linux平台：
+<br>
+
+linux平台编译方法：
 1. 安装CMake，安装GCC编译器；
 2. 从源代码仓库下载/克隆fpack项目源代码至本地；
 3. 在fpack项目目录打开命令窗口；
@@ -32,7 +34,7 @@ linux平台：
 
 <br>
 
-Windows平台：
+Windows平台编译方法：
 - MinGW-GCC编译器：
   1. 安装CMake，安装GCC编译器(MinGW)；
   2. 从源代码仓库下载/克隆fpack项目源代码至本地；
