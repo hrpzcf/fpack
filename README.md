@@ -49,7 +49,7 @@ Windows平台编译方法：
     1. 安装宇宙最强IDE`Visual Studio`；
     2. 从源代码仓库下载/克隆fpack项目源代码至本地；
     3. 打开`fpack/msbuild`目录；
-    4. 使用`Visual Studio`打开解决方案文件`pcbuild.sln`；
+    4. 使用`Visual Studio`打开解决方案文件`msbuild.sln`；
     5. 选择上方工具栏`解决方案配置`为`Release`，`x64`；
     6. 选择上方菜单栏`生成`->`生成解决方案`；
     7. 等待编译完成，生成的可执行文件在`fpack/execfile`目录下，名为`fpack.exe`。
@@ -58,6 +58,6 @@ Windows平台编译方法：
 
 # 使用方法
 
-1. 将`fpack`或`fpakc.exe`所在目录路径加入系统环境变量PATH(可不加)；
+1. 将`fpack`或`fpakc.exe`所在目录路径加入系统环境变量PATH(此步可省，但建议加入，否则每次使用fpack都要在命令行窗口中cd至fpack所在目录，不方便)；
 2. 输入命令`fpack -h`查看帮助。
-3. 如果未加入系统环境变量PATH中，则需在命令窗口中cd至`fpack`所在目录，运行命令`./fpack -h`。如果你使用的是Windows的CMD窗口则不用加`./`前缀，其他命令窗口需要`./`前缀。
+3. 如果未加入系统环境变量PATH中，则需在命令窗口中cd至`fpack`所在目录，运行命令`./fpack -h`，如果你使用的是Windows的CMD窗口则不用加`./`前缀，其他命令窗口需要`./`前缀。
