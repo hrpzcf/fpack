@@ -647,9 +647,8 @@ fpack_t *fpack_info(const char *pk_path) {
 
 fpack_t *fpack_extract(const char *name, const char *save_path, int overwrite,
                        fpack_t *fpack) {
-    int64_t offset;  // 子文件字段在主文件中的偏移
     int64_t index;   // 循环遍历子文件时的下标
-    // fpack_t *fpack;  // 包含PACK文件信息的结构体指针
+    int64_t offset;  // 子文件字段在主文件中的偏移
 #ifdef _WIN32
     static char buf_cased1[PATH_MSIZE];
     static char buf_cased2[PATH_MSIZE];
@@ -1019,6 +1018,6 @@ fpack_t *fpack_fakej_open(const char *fake_jpeg_path) {
         return fpack;
     } else {
         free(bom_pfile), free(cp_pf_path);
-        PRINT_ERROR_AND_ABORT("为pack文件信息结构体分配内存失败");
+        PRINT_ERROR_AND_ABORT("为PACK文件信息结构体分配内存失败");
     }
 }
