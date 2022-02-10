@@ -39,7 +39,8 @@ static bool expand_buf(buf_t **pp_buf, int64_t size) {
     buf_tmp->size = size, *pp_buf = buf_tmp;
     return true;
 }
-// 大文件复制，从sub_stm复制到pk_stm
+
+// 大文件复制，从子文件流复制到主文件流
 static bool copier_sub2pack(FILE *sub_stm, FILE *pk_stm, buf_t **buf_frw) {
     size_t fr_size;  // 每次fread的大小
     if (!expand_buf(buf_frw, U_BUF_SIZE)) return false;
@@ -54,6 +55,7 @@ static bool copier_sub2pack(FILE *sub_stm, FILE *pk_stm, buf_t **buf_frw) {
     return true;
 }
 
+// 大文件复制，从pk_stm复制到sub_stm
 static bool copier_pack2sub(FILE *pk_stm, int64_t offset, int64_t fsize,
                             FILE *sub_stm, buf_t **buf_frw) {
     if (!expand_buf(buf_frw, U_BUF_SIZE)) return false;
@@ -75,6 +77,7 @@ static bool copier_pack2sub(FILE *pk_stm, int64_t offset, int64_t fsize,
     return true;
 }
 
+// 获取JPEG文件的净大小
 static int64_t realsizeofj(FILE *p_jpeg, int64_t total, buf_t **buf_8bit) {
     uint8_t *buf_u8;
     int64_t end = 0;
@@ -94,6 +97,7 @@ static int64_t realsizeofj(FILE *p_jpeg, int64_t total, buf_t **buf_8bit) {
     return JPEG_INVALID;
 }
 
+// 判断是否是伪装的JPEG文件
 bool is_fake_jpeg(const char *fakej_path) {
     FILE *fhd_fake_jpeg;
     buf_t *buf_frw;
@@ -295,6 +299,7 @@ fpack_t *fpack_open(const char *pf_path) {
     }
 }
 
+// 将目标打包进已创建的空PACK文件
 fpack_t *fpack_pack(const char *topack, bool sd, fpack_t *fpack, bool add) {
     // 如果packto是目录，则此变量用于存放其父目录
     char *parent_dir;
@@ -595,6 +600,7 @@ fpack_t *fpack_pack(const char *topack, bool sd, fpack_t *fpack, bool add) {
     return fpack;
 }
 
+// 打印PACK文件中的文件列表即其他信息
 fpack_t *fpack_info(const char *pk_path) {
     size_t a, b, c;  // 已打印的(大小、类型、路径)累计字符数
     size_t tmp_strlen;      // 每个fname长度的临时变量
@@ -645,6 +651,7 @@ fpack_t *fpack_info(const char *pk_path) {
     return fpack;
 }
 
+// 从PACK文件中提取子文件
 fpack_t *fpack_extract(const char *name, const char *save_path, int overwrite,
                        fpack_t *fpack) {
     int64_t index;   // 循环遍历子文件时的下标
@@ -778,6 +785,7 @@ fpack_t *fpack_extract(const char *name, const char *save_path, int overwrite,
     return fpack;
 }
 
+// 创建空的伪装的JPEG文件
 fpack_t *fpack_fakej_make(const char *pf_path, const char *jpeg_path,
                           bool overwrite) {
     FILE *pfhd_pack;            // 主文件二进制文件流
@@ -912,6 +920,7 @@ fpack_t *fpack_fakej_make(const char *pf_path, const char *jpeg_path,
     }
 }
 
+// 打开已存在的伪装的JPEG文件
 fpack_t *fpack_fakej_open(const char *fake_jpeg_path) {
     fpack_t *fpack;             // PACK文件信息结构体
     head_t tmp_head;            // 临时PACK文件头
