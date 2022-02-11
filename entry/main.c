@@ -142,7 +142,7 @@ int parse_cmds(int argc, char **argvs) {
     }
     // 查找命令行参数从第3个开始，否则查不到
     optind = 2;
-    split_ext(exec_name, PATH_MSIZE, NULL, 0, base_name(NULL, 0, argvs[0]),
+    path_splitext(exec_name, PATH_MSIZE, NULL, 0, path_basename(NULL, 0, argvs[0]),
               '.');
     if (!strcmp(argvs[1], MAIN_HELP)) {
         printf(PACK_USEAGE, exec_name);
@@ -189,14 +189,14 @@ int parse_cmds(int argc, char **argvs) {
             return EXIT_CODE_FAILURE;
         }
         if (!*fpack_file_path) {
-            abs_path(fpack_file_path, PATH_MSIZE, target_dir_path);
-            dir_name(fpack_file_path, PATH_MSIZE, fpack_file_path);
+            path_abspath(fpack_file_path, PATH_MSIZE, target_dir_path);
+            path_dirname(fpack_file_path, PATH_MSIZE, fpack_file_path);
         }
         if (!*fpack_file_path) {
             fprintf(stderr, PACK_ERROR "未输入PACK路径(应由[-p]选项指定)\n");
             return EXIT_CODE_FAILURE;
         }
-        if (is_exist(fpack_file_path))
+        if (path_exists(fpack_file_path))
             fpack = fpack_open(fpack_file_path);
         else
             fpack = fpack_make(fpack_file_path, overwrite);
@@ -322,8 +322,8 @@ int parse_cmds(int argc, char **argvs) {
             return EXIT_CODE_FAILURE;
         }
         if (!*fpack_file_path) {
-            abs_path(fpack_file_path, PATH_MSIZE, target_dir_path);
-            dir_name(fpack_file_path, PATH_MSIZE, fpack_file_path);
+            path_abspath(fpack_file_path, PATH_MSIZE, target_dir_path);
+            path_dirname(fpack_file_path, PATH_MSIZE, fpack_file_path);
         }
         if (!*fpack_file_path) {
             fprintf(stderr, PACK_ERROR "未输入PACK路径(应由[-p]选项指定)\n");
@@ -333,7 +333,7 @@ int parse_cmds(int argc, char **argvs) {
             fprintf(stderr, PACK_ERROR "未输入JPEG路径(应由[-j]选项指定)\n");
             return EXIT_CODE_FAILURE;
         }
-        if (is_exist(fpack_file_path)) {
+        if (path_exists(fpack_file_path)) {
             printf(PACK_WARN "已存在PACK文件，[-j]及[-o]选项将不生效。\n");
             fpack = fpack_fakej_open(fpack_file_path);
         } else {

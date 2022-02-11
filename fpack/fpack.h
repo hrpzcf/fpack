@@ -115,7 +115,7 @@ static const head_t df_head = {
 // 出错时打印调试信息及退出程序
 #define PRINT_ERROR_AND_ABORT(STR) \
     fprintf(stderr, PACK_ERROR STR ": 源码 %s 第 %d 行，[ %s ]\n", \
-            base_name(NULL, 0ULL, __FILE__), __LINE__, PACK_VERSION); \
+            path_basename(NULL, 0ULL, __FILE__), __LINE__, PACK_VERSION); \
     exit(EXIT_CODE_FAILURE)
 
 // 出错时判断是否关闭文件流并删除文件

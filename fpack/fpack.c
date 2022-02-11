@@ -105,7 +105,7 @@ bool is_fake_jpeg(const char *fakej_path) {
     head_t head_tmp;
     static char buf_p[PATH_MSIZE];
     bool return_code = false;
-    if (abs_path(buf_p, PATH_MSIZE, fakej_path)) return return_code;
+    if (path_abspath(buf_p, PATH_MSIZE, fakej_path)) return return_code;
     fhd_fake_jpeg = fopen_fpack(buf_p, "rb");
     if (!fhd_fake_jpeg) return return_code;
     if (fseek_fpack(fhd_fake_jpeg, 0LL, SEEK_END)) return return_code;
@@ -149,7 +149,7 @@ fpack_t *fpack_make(const char *pf_path, bool overwrite) {
     fpack_t *fpack;             // PACK文件信息结构体
     char buf_path[PATH_MSIZE];  // 绝对路径及父目录缓冲
     char *cp_pf_path;           // 拷贝路径用于结构体
-    if (abs_path(buf_path, PATH_MSIZE, pf_path)) {
+    if (path_abspath(buf_path, PATH_MSIZE, pf_path)) {
         printf(PACK_ERROR "无法获取主文件绝对路径：%s\n", pf_path);
         exit(EXIT_CODE_FAILURE);
     }
@@ -159,31 +159,31 @@ fpack_t *fpack_make(const char *pf_path, bool overwrite) {
         PRINT_ERROR_AND_ABORT("为主文件路径数组分配内存失败");
     }
     strcpy(cp_pf_path, buf_path);
-    if (is_exist(cp_pf_path)) {
-        if (is_dir(cp_pf_path)) {
+    if (path_exists(cp_pf_path)) {
+        if (path_isdir(cp_pf_path)) {
             printf(PACK_ERROR "此位置已存在同名目录\n");
             exit(EXIT_CODE_FAILURE);
-        } else if (path_last_error()) {
+        } else if (path_last_state()) {
             printf(PACK_ERROR "获取路径属性失败\n");
             exit(EXIT_CODE_FAILURE);
         } else if (!overwrite) {
             printf(PACK_ERROR "已存在同名文件但未指定覆盖\n");
             exit(EXIT_CODE_FAILURE);
         }
-    } else if (path_last_error()) {
+    } else if (path_last_state()) {
         printf(PACK_ERROR "无法检查此路径是否存在\n");
         exit(EXIT_CODE_FAILURE);
     }
-    if (!dir_name(buf_path, PATH_MSIZE, buf_path)) {
+    if (!path_dirname(buf_path, PATH_MSIZE, buf_path)) {
         printf(PACK_ERROR "获取主文件的父目录路径失败\n");
         exit(EXIT_CODE_FAILURE);
     }
-    if (!is_exist(buf_path)) {
-        if (make_dirs(buf_path)) {
+    if (!path_exists(buf_path)) {
+        if (path_mkdirs(buf_path)) {
             printf(PACK_ERROR "为主文件创建目录失败\n");
             exit(EXIT_CODE_FAILURE);
         }
-    } else if (!is_dir(buf_path)) {
+    } else if (!path_isdir(buf_path)) {
         printf(PACK_ERROR "父目录已被文件占用，无法创建主文件\n");
         exit(EXIT_CODE_FAILURE);
     }
@@ -221,7 +221,7 @@ fpack_t *fpack_open(const char *pf_path) {
     char buf_path[PATH_MSIZE];  // 绝对路径及父目录缓冲
     char *cp_pf_path;           // 拷贝路径用于结构体
     int64_t subn = 0LL;         // 子文件信息表容量
-    if (abs_path(buf_path, PATH_MSIZE, pf_path)) {
+    if (path_abspath(buf_path, PATH_MSIZE, pf_path)) {
         printf(PACK_ERROR "无法获取主文件绝对路径：%s\n", pf_path);
         exit(EXIT_CODE_FAILURE);
     }
@@ -231,8 +231,8 @@ fpack_t *fpack_open(const char *pf_path) {
         PRINT_ERROR_AND_ABORT("为主文件文件名分配内存失败");
     }
     strcpy(cp_pf_path, buf_path);
-    if (!is_file(cp_pf_path)) {
-        if (path_last_error()) {
+    if (!path_isfile(cp_pf_path)) {
+        if (path_last_state()) {
             printf(PACK_ERROR "获取主文件路径属性失败\n");
             exit(EXIT_CODE_FAILURE);
         } else {
@@ -311,7 +311,7 @@ fpack_t *fpack_pack(const char *topack, bool sd, fpack_t *fpack, bool add) {
         buf_cased[PATH_MSIZE];  // WIN平台比较路径是否相同需要先转全小写
 #endif
     // 收集路径的scanlist容器
-    scanlist_t *scanlist_paths;
+    scanner_t *scanlist_paths;
     FILE *stream_subfile;  // 打开子文件共用指针
     // 用于临时读写文件大小、文件名长度、文件名，也用于更新主文件结构体的子文件信息表
     info_t finfo;
@@ -321,7 +321,7 @@ fpack_t *fpack_pack(const char *topack, bool sd, fpack_t *fpack, bool add) {
     } else if (!*topack) {
         PRINT_ERROR_AND_ABORT("打包目标路径是空字符串");
     }
-    if (!is_exist(topack)) {
+    if (!path_exists(topack)) {
         printf(PACK_ERROR "目标文件或目录不存在：%s\n", topack);
         exit(EXIT_CODE_FAILURE);
     }
@@ -332,7 +332,7 @@ fpack_t *fpack_pack(const char *topack, bool sd, fpack_t *fpack, bool add) {
         exit(EXIT_CODE_FAILURE);
     }
     strcpy(buf_absp1, fpack->fpath);
-    if (!normal_path(normal_case(buf_absp1), PATH_MSIZE)) {
+    if (!path_normpath(path_normcase(buf_absp1), PATH_MSIZE)) {
         WHETHER_CLOSE_REMOVE(fpack);
         PRINT_ERROR_AND_ABORT("获取路径标准形式失败");
     }
@@ -343,9 +343,9 @@ fpack_t *fpack_pack(const char *topack, bool sd, fpack_t *fpack, bool add) {
         WHETHER_CLOSE_REMOVE(fpack);
         PRINT_ERROR_AND_ABORT("为文件读写缓冲区分配初始内存失败");
     }
-    if (is_file(topack)) {
+    if (path_isfile(topack)) {
         printf(PACK_INFO "写入：%s\n", topack);
-        if (abs_path(buf_absp2, PATH_MSIZE, topack)) {
+        if (path_abspath(buf_absp2, PATH_MSIZE, topack)) {
             WHETHER_CLOSE_REMOVE(fpack);
             PRINT_ERROR_AND_ABORT("获取子文件绝对路径失败");
         }
@@ -353,14 +353,14 @@ fpack_t *fpack_pack(const char *topack, bool sd, fpack_t *fpack, bool add) {
         if (!strcmp(buf_absp1, buf_absp2))
 #else
         strcpy(buf_cased, buf_absp2);
-        if (!strcmp(buf_absp1, normal_case(buf_cased)))
+        if (!strcmp(buf_absp1, path_normcase(buf_cased)))
 #endif  // _WIN32
         {
             WHETHER_CLOSE_REMOVE(fpack);
             printf(PACK_ERROR "退出：此文件是主文件\n");
             exit(EXIT_CODE_SUCCESS);
         }
-        if (!base_name(finfo.fname, PATH_MSIZE, buf_absp2)) {
+        if (!path_basename(finfo.fname, PATH_MSIZE, buf_absp2)) {
             WHETHER_CLOSE_REMOVE(fpack);
             printf(PACK_ERROR "获取子文件名失败：%s\n", buf_absp2);
             exit(EXIT_CODE_FAILURE);
@@ -421,14 +421,14 @@ fpack_t *fpack_pack(const char *topack, bool sd, fpack_t *fpack, bool add) {
             }
         }
         fpack->subs[fpack->head.count++] = finfo;
-    } else if (is_dir(topack)) {
-        if (abs_path(buf_absp2, PATH_MSIZE, topack)) {
+    } else if (path_isdir(topack)) {
+        if (path_abspath(buf_absp2, PATH_MSIZE, topack)) {
             WHETHER_CLOSE_REMOVE(fpack);
             PRINT_ERROR_AND_ABORT("获取子文件目录绝对路径失败");
         }
         if (parent_dir = malloc(PATH_MSIZE)) {
-            if (!dir_name(parent_dir, PATH_MSIZE,
-                          normal_path(buf_absp2, PATH_MSIZE))) {
+            if (!path_dirname(parent_dir, PATH_MSIZE,
+                          path_normpath(buf_absp2, PATH_MSIZE))) {
                 WHETHER_CLOSE_REMOVE(fpack);
                 PRINT_ERROR_AND_ABORT("获取子文件目录的父目录失败");
             }
@@ -437,11 +437,11 @@ fpack_t *fpack_pack(const char *topack, bool sd, fpack_t *fpack, bool add) {
             PRINT_ERROR_AND_ABORT("为子文件父目录缓冲区分配内存失败");
         }
         printf(PACK_INFO "扫描目录...\n");
-        if (!(scanlist_paths = make_scanlist(0))) {
+        if (!(scanlist_paths = path_mkscan(0))) {
             WHETHER_CLOSE_REMOVE(fpack);
             PRINT_ERROR_AND_ABORT("创建路径扫描器失败");
         }
-        if (enrich_scanlist(buf_absp2, PTYPE_BOTH, sd, &scanlist_paths)) {
+        if (path_scanpath(buf_absp2, FTYPE_BOTH, sd, &scanlist_paths)) {
             WHETHER_CLOSE_REMOVE(fpack);
             printf(PACK_ERROR "扫描目录失败：%s\n", buf_absp2);
             exit(EXIT_CODE_FAILURE);
@@ -452,9 +452,9 @@ fpack_t *fpack_pack(const char *topack, bool sd, fpack_t *fpack, bool add) {
         }
         for (size_t i = 0; i < scanlist_paths->count; ++i) {
             printf(PACK_INFO "写入：%s\n", scanlist_paths->paths[i]);
-            if (is_dir(scanlist_paths->paths[i])) {
+            if (path_isdir(scanlist_paths->paths[i])) {
                 finfo.fsize = DIR_SIZE;  // 目录大小定义为DIR_SIZE
-                if (rel_path(finfo.fname, PATH_MSIZE, scanlist_paths->paths[i],
+                if (path_relpath(finfo.fname, PATH_MSIZE, scanlist_paths->paths[i],
                              parent_dir)) {
                     if (i >= scanlist_paths->count - 1) {
                         WHETHER_CLOSE_REMOVE(fpack);
@@ -490,7 +490,7 @@ fpack_t *fpack_pack(const char *topack, bool sd, fpack_t *fpack, bool add) {
                 if (!strcmp(buf_absp1, scanlist_paths->paths[i]))
 #else
                 strcpy(buf_cased, scanlist_paths->paths[i]);
-                if (!strcmp(buf_absp1, normal_case(buf_cased)))
+                if (!strcmp(buf_absp1, path_normcase(buf_cased)))
 #endif  // _WIN32
                 {
                     if (i >= scanlist_paths->count - 1) {
@@ -499,7 +499,7 @@ fpack_t *fpack_pack(const char *topack, bool sd, fpack_t *fpack, bool add) {
                     printf(PACK_WARN "跳过：此文件是主文件\n");
                     continue;
                 }
-                if (rel_path(finfo.fname, PATH_MSIZE, scanlist_paths->paths[i],
+                if (path_relpath(finfo.fname, PATH_MSIZE, scanlist_paths->paths[i],
                              parent_dir)) {
                     if (i >= scanlist_paths->count - 1) {
                         WHETHER_CLOSE_REMOVE(fpack);
@@ -585,7 +585,7 @@ fpack_t *fpack_pack(const char *topack, bool sd, fpack_t *fpack, bool add) {
             }
             fpack->subs[fpack->head.count++] = finfo;
         }
-        delete_scanlist(scanlist_paths);
+        path_delscan(scanlist_paths);
     } else {
         WHETHER_CLOSE_REMOVE(fpack);
         printf(PACK_ERROR "路径不是文件也不是目录：%s\n", topack);
@@ -669,16 +669,16 @@ fpack_t *fpack_extract(const char *name, const char *save_path, int overwrite,
     } else {
         PRINT_ERROR_AND_ABORT("为文件读写缓冲区分配内存失败");
     }
-    if (!is_exist(save_path)) {
-        if (path_last_error()) {
+    if (!path_exists(save_path)) {
+        if (path_last_state()) {
             fprintf(stderr, PACK_ERROR "获取路径属性失败：%s\n", save_path);
             exit(EXIT_CODE_FAILURE);
         }
-        if (make_dirs(save_path)) {
+        if (path_mkdirs(save_path)) {
             fprintf(stderr, PACK_ERROR "创建目录失败：%s\n", save_path);
             exit(EXIT_CODE_FAILURE);
         }
-    } else if (!is_dir(save_path)) {
+    } else if (!path_isdir(save_path)) {
         fprintf(stderr, PACK_ERROR "保存目录已被文件名占用：%s\n", save_path);
         exit(EXIT_CODE_FAILURE);
     }
@@ -686,37 +686,37 @@ fpack_t *fpack_extract(const char *name, const char *save_path, int overwrite,
 #ifdef _WIN32
     if (name) {
         strcpy(buf_cased1, name);
-        normal_case(buf_cased1);
+        path_normcase(buf_cased1);
     }
 #endif
     for (index = 0; index < fpack->head.count; ++index) {
         if (name) {
 #ifdef _WIN32
             strcpy(buf_cased2, fpack->subs[index].fname);
-            if (strcmp(buf_cased1, normal_case(buf_cased2))) continue;
+            if (strcmp(buf_cased1, path_normcase(buf_cased2))) continue;
 #else
             if (strcmp(name, fpack->subs[index].fname)) continue;
 #endif
         }
         printf(PACK_INFO "提取：%s\n", fpack->subs[index].fname);
         if (fpack->subs[index].fsize < 0) {
-            if (is_exist(fpack->subs[index].fname)) {
-                if (is_dir(fpack->subs[index].fname)) continue;
+            if (path_exists(fpack->subs[index].fname)) {
+                if (path_isdir(fpack->subs[index].fname)) continue;
                 printf(PACK_WARN "跳过：目录名称已被文件占用s\n");
                 continue;
             }
-            if (make_dirs(fpack->subs[index].fname)) {
+            if (path_mkdirs(fpack->subs[index].fname)) {
                 printf(PACK_WARN "跳过：无法在此位置创建目录\n");
                 continue;
             }
         } else {
-            if (join_path(buf_sub_path, PATH_MSIZE, 2, save_path,
+            if (path_joinpath(buf_sub_path, PATH_MSIZE, 2, save_path,
                           fpack->subs[index].fname)) {
                 printf(PACK_WARN "跳过：拼接子文件完整路径失败\n");
                 continue;
             }
-            if (is_exist(buf_sub_path)) {
-                if (is_dir(buf_sub_path)) {
+            if (path_exists(buf_sub_path)) {
+                if (path_isdir(buf_sub_path)) {
                     printf(PACK_WARN "跳过：文件路径已被目录占用：%s\n",
                            buf_sub_path);
                     continue;
@@ -727,19 +727,19 @@ fpack_t *fpack_extract(const char *name, const char *save_path, int overwrite,
                     continue;
                 }
             }
-            if (!dir_name(buf_sub_pard, PATH_MSIZE, buf_sub_path)) {
+            if (!path_dirname(buf_sub_pard, PATH_MSIZE, buf_sub_path)) {
                 printf(PACK_WARN "跳过：获取父级路径失败\n");
                 continue;
             }
-            if (is_exist(buf_sub_pard)) {
-                if (is_file(buf_sub_pard)) {
+            if (path_exists(buf_sub_pard)) {
+                if (path_isfile(buf_sub_pard)) {
                     printf(PACK_WARN "跳过：目录路径已被文件占用：%s\n",
                            buf_sub_pard);
                     continue;
                 }
             } else {
                 printf(PACK_INFO "创建目录：%s\n", buf_sub_pard);
-                if (make_dirs(buf_sub_pard)) {
+                if (path_mkdirs(buf_sub_pard)) {
                     printf(PACK_WARN "跳过：目录创建失败：%s\n", buf_sub_pard);
                 }
             }
@@ -796,7 +796,7 @@ fpack_t *fpack_fakej_make(const char *pf_path, const char *jpeg_path,
     buf_t *buf_frw;             // 文件读写缓冲区
     char *cp_pf_path;           // 复制的文件路径
     char buf_path[PATH_MSIZE];  // 绝对路径及父目录缓冲
-    if (abs_path(buf_path, PATH_MSIZE, pf_path)) {
+    if (path_abspath(buf_path, PATH_MSIZE, pf_path)) {
         printf(PACK_ERROR "无法获取主文件绝对路径：%s\n", pf_path);
         exit(EXIT_CODE_FAILURE);
     }
@@ -806,35 +806,35 @@ fpack_t *fpack_fakej_make(const char *pf_path, const char *jpeg_path,
         PRINT_ERROR_AND_ABORT("为主文件路径数组分配内存失败");
     }
     strcpy(cp_pf_path, buf_path);
-    if (is_exist(cp_pf_path)) {
-        if (is_dir(cp_pf_path)) {
+    if (path_exists(cp_pf_path)) {
+        if (path_isdir(cp_pf_path)) {
             printf(PACK_ERROR "此位置已存在同名目录\n");
             exit(EXIT_CODE_FAILURE);
-        } else if (path_last_error()) {
+        } else if (path_last_state()) {
             printf(PACK_ERROR "获取路径属性失败\n");
             exit(EXIT_CODE_FAILURE);
         } else if (!overwrite) {
             printf(PACK_ERROR "已存在同名文件但未指定覆盖\n");
             exit(EXIT_CODE_FAILURE);
         }
-    } else if (path_last_error()) {
+    } else if (path_last_state()) {
         printf(PACK_ERROR "无法检查此路径是否存在\n");
         exit(EXIT_CODE_FAILURE);
     }
-    if (!dir_name(buf_path, PATH_MSIZE, buf_path)) {
+    if (!path_dirname(buf_path, PATH_MSIZE, buf_path)) {
         printf(PACK_ERROR "获取主文件的父目录路径失败\n");
         exit(EXIT_CODE_FAILURE);
     }
-    if (!is_exist(buf_path)) {
-        if (make_dirs(buf_path)) {
+    if (!path_exists(buf_path)) {
+        if (path_mkdirs(buf_path)) {
             printf(PACK_ERROR "为主文件创建目录失败\n");
             exit(EXIT_CODE_FAILURE);
         }
-    } else if (!is_dir(buf_path)) {
+    } else if (!path_isdir(buf_path)) {
         printf(PACK_ERROR "父目录名已被文件名占用：%s\n", buf_path);
         exit(EXIT_CODE_FAILURE);
     }
-    if (!is_file(jpeg_path)) {
+    if (!path_isfile(jpeg_path)) {
         printf(PACK_ERROR "指定的图像路径不是一个文件或不存在：%s\n",
                jpeg_path);
         exit(EXIT_CODE_FAILURE);
@@ -932,7 +932,7 @@ fpack_t *fpack_fakej_open(const char *fake_jpeg_path) {
     buf_t *buf_frw;             // 文件读写缓冲区
     int64_t fake_jpeg_size;     // 伪JPEG文件的总大小
     int64_t jpeg_netsize;       // 伪JPEG文件净大小
-    if (abs_path(buf_path, PATH_MSIZE, fake_jpeg_path)) {
+    if (path_abspath(buf_path, PATH_MSIZE, fake_jpeg_path)) {
         printf(PACK_ERROR "无法获取文件绝对路径：%s\n", fake_jpeg_path);
         exit(EXIT_CODE_FAILURE);
     }
@@ -942,8 +942,8 @@ fpack_t *fpack_fakej_open(const char *fake_jpeg_path) {
         PRINT_ERROR_AND_ABORT("为伪图文件文件名分配内存失败");
     }
     strcpy(cp_pf_path, buf_path);
-    if (!is_file(cp_pf_path)) {
-        if (path_last_error()) {
+    if (!path_isfile(cp_pf_path)) {
+        if (path_last_state()) {
             printf(PACK_ERROR "获取主文件路径属性失败\n");
             exit(EXIT_CODE_FAILURE);
         } else {

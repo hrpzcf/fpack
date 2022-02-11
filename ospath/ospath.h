@@ -21,10 +21,10 @@
 #define STATUS_INVALID_PARAM 0x00000040  // 无效的参数值
 #define STATUS_INSFC_BUFFER  0x00000080  // 缓冲区空间不足
 
-// 函数enrich_scanlist的p_type参数可用值
-#define PTYPE_FILE 0x00000001  // 搜索文件
-#define PTYPE_DIR  0x00000002  // 搜索目录
-#define PTYPE_BOTH 0x00000004  // 搜索文件与目录
+// 函数path_scanpath的ftype参数可用值
+#define FTYPE_FILE 0x00000001  // 搜索文件
+#define FTYPE_DIR  0x00000002  // 搜索目录
+#define FTYPE_BOTH 0x00000004  // 文件与目录
 
 #define RESULT_SUCCESS 0  // 成功
 #define RESULT_FAILURE 1  // 失败
@@ -62,32 +62,33 @@ typedef struct {
     size_t blocks;  // 数组paths能容纳的指针数
     size_t count;   // 数组paths中已写入的字符指针数量
     char *paths[];  // 保存路径字符指针的指针数组
-} scanlist_t;
+} scanner_t;
 
-int path_last_error(void);  //获取最后一次函数执行的错误状态
-scanlist_t *make_scanlist(size_t block);
-int enrich_scanlist(const char *dir_path, int p_type, int subdirs,
-                    scanlist_t **const pp_scanlst);
-void delete_scanlist(scanlist_t *scanlst);
-bool is_exist(const char *_path);
-bool is_dir(const char *_path);
-bool is_file(const char *_path);
-bool is_abs(const char *_path);
-int make_dirs(const char *_path);
-char *get_cwd(char *buf, size_t size);
-char *normal_case(char path[]);
-char *normal_path(char path[], size_t size);
-int split_drv(char buf_d[], size_t bdsize, char buf_p[], size_t bpsize,
-              const char *_path);
-int join_path(char buf[], size_t bfsize, int n, const char *_path, ...);
-int split_path(char buf_h[], size_t bhsize, char buf_t[], size_t btsize,
-               const char *_path);
-char *dir_name(char buf_dir[], size_t bfsize, const char *_path);
-char *base_name(char buf_base[], size_t bfsize, const char *_path);
-int rel_path(char buf[], size_t bfsize, const char *_path, const char *start);
-int abs_path(char buf[], size_t bfsize, const char *_path);
-int split_ext(char buf_h[], size_t bhsize, char buf_e[], size_t besize,
-              const char *_path, int extsep);
-int prune_path(char buf[], size_t bfsize, const char *_path);
+int path_last_state(void);  //获取最后一次函数执行的错误状态
+scanner_t *path_mkscan(size_t block);
+int path_scanpath(const char *dir_path, int ftype, int subdirs,
+                  scanner_t **const pp_scanner);
+int path_delscan(scanner_t *scanlst);
+bool path_exists(const char *_path);
+bool path_isdir(const char *_path);
+bool path_isfile(const char *_path);
+bool path_isabs(const char *_path);
+int path_mkdirs(const char *_path);
+char *path_getcwd(char *buf, size_t size);
+char *path_normcase(char path[]);
+char *path_normpath(char path[], size_t size);
+int path_splitdrv(char buf_d[], size_t bdsize, char buf_p[], size_t bpsize,
+                  const char *_path);
+int path_joinpath(char buf[], size_t bfsize, int n, const char *_path, ...);
+int path_splitpath(char buf_h[], size_t bhsize, char buf_t[], size_t btsize,
+                   const char *_path);
+char *path_dirname(char buf_dir[], size_t bfsize, const char *_path);
+char *path_basename(char buf_base[], size_t bfsize, const char *_path);
+int path_relpath(char buf[], size_t bfsize, const char *_path,
+                 const char *start);
+int path_abspath(char buf[], size_t bfsize, const char *_path);
+int path_splitext(char buf_h[], size_t bhsize, char buf_e[], size_t besize,
+                  const char *_path, int extsep);
+int path_prunepath(char buf[], size_t bfsize, const char *_path);
 
 #endif  // __OSPATH_H__
