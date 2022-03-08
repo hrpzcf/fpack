@@ -142,8 +142,8 @@ int parse_cmds(int argc, char **argvs) {
     }
     // 查找命令行参数从第3个开始，否则查不到
     optind = 2;
-    path_splitext(exec_name, PATH_MSIZE, NULL, 0, path_basename(NULL, 0, argvs[0]),
-              '.');
+    path_splitext(exec_name, PATH_MSIZE, NULL, 0,
+                  path_basename(NULL, 0, argvs[0]), '.');
     if (!strcmp(argvs[1], MAIN_HELP)) {
         printf(PACK_USEAGE, exec_name);
         return EXIT_CODE_SUCCESS;
@@ -179,8 +179,8 @@ int parse_cmds(int argc, char **argvs) {
                 default:
                     fprintf(stderr,
                             PACK_ERROR
-                            "没有此选项：-%c，请使用'-h'命令查看使用帮助。",
-                            optopt);
+                            "没有此选项：-%c，请使用'%s -h'命令查看使用帮助。",
+                            optopt, exec_name);
                     return EXIT_CODE_FAILURE;
             }
         }
@@ -233,8 +233,8 @@ int parse_cmds(int argc, char **argvs) {
                 default:
                     fprintf(stderr,
                             PACK_ERROR
-                            "没有此选项：-%c，请使用'-h'命令查看使用帮助。",
-                            optopt);
+                            "没有此选项：-%c，请使用'%s -h'命令查看使用帮助。",
+                            optopt, exec_name);
                     return EXIT_CODE_FAILURE;
             }
         }
@@ -264,8 +264,8 @@ int parse_cmds(int argc, char **argvs) {
                 default:
                     fprintf(stderr,
                             PACK_ERROR
-                            "没有此选项：-%c，请使用'-h'命令查看使用帮助。",
-                            optopt);
+                            "没有此选项：-%c，请使用'%s -h'命令查看使用帮助。",
+                            optopt, exec_name);
                     return EXIT_CODE_FAILURE;
             }
         }
@@ -312,8 +312,8 @@ int parse_cmds(int argc, char **argvs) {
                 default:
                     fprintf(stderr,
                             PACK_ERROR
-                            "没有此选项：-%c，请使用'-h'命令查看使用帮助。",
-                            optopt);
+                            "没有此选项：-%c，请使用'%s -h'命令查看使用帮助。",
+                            optopt, exec_name);
                     return EXIT_CODE_FAILURE;
             }
         }
@@ -345,9 +345,8 @@ int parse_cmds(int argc, char **argvs) {
         return EXIT_CODE_SUCCESS;
     } else {
         fprintf(stderr,
-                PACK_ERROR
-                "没有此命令：%s，请使用help命令或-h命令查看使用帮助。\n",
-                argvs[1]);
+                PACK_ERROR "没有此命令：%s，请使用'%s -h'命令查看使用帮助。\n",
+                argvs[1], exec_name);
         return EXIT_CODE_FAILURE;
     }
     return EXIT_CODE_SUCCESS;
