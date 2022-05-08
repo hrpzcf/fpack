@@ -976,7 +976,6 @@ char *path_normcase(char path[]) {
 // 此函数改变原路径，成功返回缓冲区指针，失败返回NULL
 char *path_normpath(char path[], size_t size) {
     char *result_s = path;
-    char tmp_path[PATH_MSIZE];
     char initial_slashes[3] = {0};
     char tmp_path[PATH_MSIZE];
     char *token_spl, *splited[PATH_MSIZE];
