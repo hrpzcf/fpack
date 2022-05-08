@@ -21,8 +21,7 @@ aux_source_directory(./fpack source_code)
 aux_source_directory(./codecs source_code)
 aux_source_directory(./ospath source_code)
 
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ../execfile)
-
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ../binfile)
 add_executable(fpack ${source_code})
 
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
