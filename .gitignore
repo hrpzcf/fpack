@@ -9,3 +9,4 @@ execfile/
 *.pfs
 /useage.txt
 /msbuild/*.jpeg
+/binfile/
