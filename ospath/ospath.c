@@ -18,8 +18,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#endif  // _WIN32
-#endif  // _MSC_VER
+#endif // _WIN32
+#endif // _MSC_VER
 
 #define EXCLUDE_RECS "$RECYCLE.BIN"
 #define EXCLUDE_SVIS "System Volume Information"
@@ -43,7 +43,8 @@ int path_last_state(void) { return OSP_LAST_STATE; }
 // 将字符串转换为全小写，_m表示改变原字符串
 static char *lower_str(char *string) {
     char *tmp = string;
-    for (; *tmp; ++tmp) *tmp = tolower(*tmp);
+    for (; *tmp; ++tmp)
+        *tmp = tolower(*tmp);
     return string;
 }
 
@@ -54,7 +55,7 @@ bool path_exists(const char *_path) {
     return !access(_path, F_OK);
 #else
     return PathFileExistsA(_path);
-#endif  // _MSC_VER
+#endif // _MSC_VER
 }
 
 // 验证路径是否是一个目录
@@ -69,9 +70,10 @@ bool path_isdir(const char *_path) {
     return S_ISDIR(buf.st_mode);
 #else
     DWORD fattr = GetFileAttributesA(_path);
-    if (fattr == INVALID_FILE_ATTRIBUTES) return RESULT_FALSE;
+    if (fattr == INVALID_FILE_ATTRIBUTES)
+        return RESULT_FALSE;
     return (fattr & FILE_ATTRIBUTE_DIRECTORY);
-#endif  // _MSC_VER
+#endif // _MSC_VER
 }
 
 // 验证路径是否是一个文件
@@ -86,9 +88,10 @@ bool path_isfile(const char *_path) {
     return !S_ISDIR(buf.st_mode);
 #else
     DWORD fattr = GetFileAttributesA(_path);
-    if (fattr == INVALID_FILE_ATTRIBUTES) return RESULT_FALSE;
+    if (fattr == INVALID_FILE_ATTRIBUTES)
+        return RESULT_FALSE;
     return !(fattr & FILE_ATTRIBUTE_DIRECTORY);
-#endif  // _MSC_VER
+#endif // _MSC_VER
 }
 
 // 创建多级目录
@@ -130,10 +133,10 @@ char *path_getcwd(char *buf, size_t size) {
     return _getcwd(buf, size);
 #else
     return getcwd(buf, size);
-#endif  // _WIN32
+#endif // _WIN32
 #else
     return GetCurrentDirectoryA((DWORD)size, buf) ? buf : NULL;
-#endif  // _MSC_VER
+#endif // _MSC_VER
 }
 
 // 创建scanlist_t结构体并分配内存，返回结构体指针
@@ -142,7 +145,8 @@ char *path_getcwd(char *buf, size_t size) {
 scanner_t *path_mkscan(size_t blocks) {
     scanner_t *scanlst;
     ospath_stat(STATUS_EXEC_SUCCESS);
-    if (blocks <= 0) blocks = MALLOC_NUM;
+    if (blocks <= 0)
+        blocks = MALLOC_NUM;
     scanlst = malloc(blocks * sizeof(scanner_t) + sizeof(char *));
     if (!scanlst) {
         ospath_stat(STATUS_MEMORY_ERROR);
@@ -175,7 +179,7 @@ int path_delscan(scanner_t *scanlst) {
 int path_scanpath(const char *dir_path, int ftype, int subdirs,
                   scanner_t **const pp_scanner) {
     size_t len_dpath, len_bytes_malloc;
-    scanner_t *tmp_p_scanlst;  // 仅为了让Visual Studio不显示警告
+    scanner_t *tmp_p_scanlst; // 仅为了让Visual Studio不显示警告
     char *buf_full_path = NULL;
     char buffer_find_path[PATH_MSIZE];
     int return_code = RESULT_SUCCESS;
@@ -186,7 +190,8 @@ int path_scanpath(const char *dir_path, int ftype, int subdirs,
     }
     tmp_p_scanlst = *pp_scanner;
     if (!path_isdir(dir_path)) {
-        if (!path_last_state()) ospath_stat(STATUS_INVALID_PARAM);
+        if (!path_last_state())
+            ospath_stat(STATUS_INVALID_PARAM);
         return RESULT_FAILURE;
     }
     len_dpath = strlen(dir_path);
@@ -208,10 +213,10 @@ int path_scanpath(const char *dir_path, int ftype, int subdirs,
     }
     // 直接FindNextFileA仍然可以获得FindFirstFileA的结果
     while (0 != FindNextFileA(hfind, &find_paths)) {
-        if (!strcmp(find_paths.cFileName, PATH_CDIRS) ||
-            !strcmp(find_paths.cFileName, PATH_PDIRS) ||
-            !strcmp(find_paths.cFileName, EXCLUDE_RECS) ||
-            !strcmp(find_paths.cFileName, EXCLUDE_SVIS))
+        if (strcmp(find_paths.cFileName, PATH_CDIRS) == 0 ||
+            strcmp(find_paths.cFileName, PATH_PDIRS) == 0 ||
+            strcmp(find_paths.cFileName, EXCLUDE_RECS) == 0 ||
+            strcmp(find_paths.cFileName, EXCLUDE_SVIS) == 0)
             continue;
         if ((*pp_scanner)->count >= (*pp_scanner)->blocks) {
             // 用sizeof(*pp_scanner)得不到原对象已分配内存大小
@@ -253,7 +258,8 @@ int path_scanpath(const char *dir_path, int ftype, int subdirs,
             if (!(ftype & FTYPE_BOTH) && !(ftype & FTYPE_DIR))
                 if (NULL != buf_full_path)
                     free(buf_full_path), buf_full_path = NULL;
-            if (return_code == RESULT_FAILURE) goto close_and_return;
+            if (return_code == RESULT_FAILURE)
+                goto close_and_return;
         } else {
             if (ftype & FTYPE_BOTH || ftype & FTYPE_FILE)
                 (*pp_scanner)->paths[(*pp_scanner)->count++] = buf_full_path;
@@ -266,7 +272,7 @@ close_and_return:
     return return_code;
 }
 
-#else  // __GNUC__
+#else // __GNUC__
 
 // 功能：搜索给定路径中的文件或目录
 // 参数pp_scanlst为结构体scanlist_t指针的指针
@@ -285,7 +291,8 @@ int path_scanpath(const char *dir_path, int ftype, int subdirs,
     }
     len_dpath = strlen(dir_path);
     if (!path_isdir(dir_path)) {
-        if (!path_last_state()) ospath_stat(STATUS_INVALID_PARAM);
+        if (!path_last_state())
+            ospath_stat(STATUS_INVALID_PARAM);
         return RESULT_FAILURE;
     }
     struct dirent *p_dent;
@@ -298,17 +305,17 @@ int path_scanpath(const char *dir_path, int ftype, int subdirs,
         goto close_and_return;
     }
     while (NULL != (p_dent = readdir(dopened))) {
-        if (!strcmp(p_dent->d_name, PATH_CDIRS) ||
-            !strcmp(p_dent->d_name, PATH_PDIRS) ||
-            !strcmp(p_dent->d_name, EXCLUDE_RECS) ||
-            !strcmp(p_dent->d_name, EXCLUDE_SVIS))
+        if (strcmp(p_dent->d_name, PATH_CDIRS) == 0 ||
+            strcmp(p_dent->d_name, PATH_PDIRS) == 0 ||
+            strcmp(p_dent->d_name, EXCLUDE_RECS) == 0 ||
+            strcmp(p_dent->d_name, EXCLUDE_SVIS) == 0)
             continue;
         if ((*pp_scanner)->count >= (*pp_scanner)->blocks) {
             // 用sizeof(*pp_scanner)得不到原对象已分配内存大小
-            *pp_scanner = realloc(
-                *pp_scanner,
-                sizeof(scanner_t) +
-                    sizeof(char *) * ((*pp_scanner)->blocks + RALLOC_NUM));
+            *pp_scanner = realloc(*pp_scanner,
+                                  sizeof(scanner_t) +
+                                      sizeof(char *) *
+                                          ((*pp_scanner)->blocks + RALLOC_NUM));
             if (NULL == *pp_scanner) {
                 return_code = RESULT_FAILURE;
                 ospath_stat(STATUS_MEMORY_ERROR);
@@ -334,7 +341,8 @@ int path_scanpath(const char *dir_path, int ftype, int subdirs,
             free(buf_full_path);
             continue;
         }
-        if (stat(buf_full_path, &buffer_d_type)) continue;
+        if (stat(buf_full_path, &buffer_d_type))
+            continue;
         if (S_ISDIR(buffer_d_type.st_mode)) {
             if (ftype & FTYPE_BOTH || ftype & FTYPE_DIR)
                 (*pp_scanner)->paths[(*pp_scanner)->count++] = buf_full_path;
@@ -342,8 +350,10 @@ int path_scanpath(const char *dir_path, int ftype, int subdirs,
                 return_code =
                     path_scanpath(buf_full_path, ftype, subdirs, pp_scanner);
             if (ftype != FTYPE_BOTH && ftype != FTYPE_DIR)
-                if (buf_full_path) free(buf_full_path), buf_full_path = NULL;
-            if (return_code == RESULT_FAILURE) goto close_and_return;
+                if (buf_full_path)
+                    free(buf_full_path), buf_full_path = NULL;
+            if (return_code == RESULT_FAILURE)
+                goto close_and_return;
         } else {
             if (ftype & FTYPE_BOTH || ftype & FTYPE_FILE)
                 (*pp_scanner)->paths[(*pp_scanner)->count++] = buf_full_path;
@@ -356,11 +366,11 @@ close_and_return:
     return return_code;
 }
 
-#endif  // _MSC_VER
+#endif // _MSC_VER
 ////////////////////////////////////////////////////////////////////////////////
 
 ////////////////////////////////////////////////////////////////////////////////
-#ifdef _WIN32  // 区分win32及posix平台
+#ifdef _WIN32 // 区分win32及posix平台
 
 // 验证路径是否是绝对路径
 // 是：返回1；否：返回0
@@ -446,7 +456,8 @@ char *path_normpath(char path[], size_t size) {
         goto clean_return;
     }
     while (*p_path) {
-        if (*p_path == PATH_ASEP) *p_path = PATH_NSEP;
+        if (*p_path == PATH_ASEP)
+            *p_path = PATH_NSEP;
         ++p_path;
     }
     if (path_splitdrv(prefix, PATH_MSIZE, suffix, PATH_MSIZE, path)) {
@@ -459,9 +470,9 @@ char *path_normpath(char path[], size_t size) {
     }
     token_spl = strtok(suffix, PATH_NSEPS);
     while (token_spl) {
-        if (!strcmp(token_spl, PATH_CDIRS))
+        if (strcmp(token_spl, PATH_CDIRS) == 0)
             goto next;
-        else if (!strcmp(token_spl, PATH_PDIRS)) {
+        else if (strcmp(token_spl, PATH_PDIRS) == 0) {
             if (index > 0 && strcmp(splited[index - 1], PATH_PDIRS))
                 --index;
             else if (index == 0 && prefix[2] == PATH_NSEP)
@@ -497,14 +508,18 @@ char *path_normpath(char path[], size_t size) {
                 goto clean_return;
             }
             strcat(tmp_path, splited[i]);
-            if (i != index - 1) strcat(tmp_path, PATH_NSEPS);
+            if (i != index - 1)
+                strcat(tmp_path, PATH_NSEPS);
         }
         strcpy(path, tmp_path);
     }
 clean_return:
-    if (NULL != prefix) free(prefix);
-    if (NULL != suffix) free(suffix);
-    if (NULL != splited) free(splited);
+    if (NULL != prefix)
+        free(prefix);
+    if (NULL != suffix)
+        free(suffix);
+    if (NULL != splited)
+        free(splited);
     return result_s;
 }
 
@@ -540,7 +555,8 @@ int path_splitdrv(char buf_d[], size_t bdsize, char buf_p[], size_t bpsize,
     strcpy(tmp_path, _path);
     if (p_len >= 2) {
         strcpy(cased, tmp_path);
-        if (!path_normcase(cased)) return RESULT_FAILURE;
+        if (!path_normcase(cased))
+            return RESULT_FAILURE;
         if (!strncmp(cased, PATH_NSEPS2, 2) && cased[2] != PATH_NSEP) {
             sep3_index = strchr(cased + 2, PATH_NSEP);
             if (NULL == sep3_index ||
@@ -564,7 +580,8 @@ int path_splitdrv(char buf_d[], size_t bdsize, char buf_p[], size_t bpsize,
             }
             // 这一句判断语句不一定执行
             // 所以后面所有sep4_index - p_cased都不能简化为p_len
-            if (NULL == sep4_index) sep4_index = cased + p_len;
+            if (NULL == sep4_index)
+                sep4_index = cased + p_len;
             if (NULL != buf_d) {
                 if (bdsize <= (size_t)(sep4_index - cased)) {
                     ospath_stat(STATUS_INSFC_BUFFER);
@@ -658,7 +675,8 @@ int path_joinpath(char buf[], size_t bfsize, int n, const char *_path, ...) {
             goto clean_return;
         }
         if (*p_pth && (p_pth[0] == PATH_NSEP || p_pth[0] == PATH_ASEP)) {
-            if (*p_drv || !*res_drv) strcpy(res_drv, p_drv);
+            if (*p_drv || !*res_drv)
+                strcpy(res_drv, p_drv);
             req_size = strlen(p_pth);
             if (req_size >= PATH_MSIZE) {
                 return_code = RESULT_FAILURE;
@@ -712,10 +730,14 @@ int path_joinpath(char buf[], size_t bfsize, int n, const char *_path, ...) {
     }
     sprintf(buf, "%s%s", res_drv, res_pth);
 clean_return:
-    if (p_drv) free(p_drv);
-    if (p_pth) free(p_pth);
-    if (res_drv) free(res_drv);
-    if (res_pth) free(res_pth);
+    if (p_drv)
+        free(p_drv);
+    if (p_pth)
+        free(p_pth);
+    if (res_drv)
+        free(res_drv);
+    if (res_pth)
+        free(res_pth);
     return return_code;
 }
 
@@ -725,7 +747,7 @@ int path_splitpath(char buf_h[], size_t bhsize, char buf_t[], size_t btsize,
                    const char *_path) {
     int index, return_code = RESULT_SUCCESS;
     size_t p_len, last_sep_plus1;
-    char *ah_rs = NULL;  // 右边第一个路径分隔符以左的字符串
+    char *ah_rs = NULL; // 右边第一个路径分隔符以左的字符串
     char p_drv[PATH_MSIZE], p_pth[PATH_MSIZE];
     ospath_stat(STATUS_EXEC_SUCCESS);
     if (!_path) {
@@ -766,7 +788,7 @@ int path_splitpath(char buf_h[], size_t bhsize, char buf_t[], size_t btsize,
         if (ah_rs[index] == PATH_ASEP || ah_rs[index] == PATH_NSEP)
             continue;
         else {
-            ah_rs[index + 1] = EMPTY_CHAR;  // 去除尾随斜杠
+            ah_rs[index + 1] = EMPTY_CHAR; // 去除尾随斜杠
             break;
         }
     }
@@ -791,7 +813,8 @@ int path_splitpath(char buf_h[], size_t bhsize, char buf_t[], size_t btsize,
         }
     }
 clean_return:
-    if (NULL != ah_rs) free(ah_rs);
+    if (NULL != ah_rs)
+        free(ah_rs);
     return return_code;
 }
 
@@ -823,11 +846,11 @@ char *path_basename(char buf_base[], size_t bfsize, const char *_path) {
 int path_relpath(char buf[], size_t size, const char *_path,
                  const char *start) {
     int ret_status = RESULT_FAILURE;
-    int req_size = 0;  // 结果字符数，size要大于此数才能装下结果
+    int req_size = 0; // 结果字符数，size要大于此数才能装下结果
     // cnt_p及cnt_s：以斜杠分割后的字符串数量；cnt_min：两者中的较小值
     int cnt_min, cnt_p = 0, cnt_s = 0;
     char **p_lst = NULL, **s_lst = NULL;
-    int cnt_same = 0;  // 相同目录数量
+    int cnt_same = 0; // 相同目录数量
     char *p_abs, *s_abs, *buf_p, *buf_s, *stk;
     ospath_stat(STATUS_EXEC_SUCCESS);
     if (!_path) {
@@ -846,9 +869,12 @@ int path_relpath(char buf[], size_t size, const char *_path,
         ospath_stat(STATUS_MEMORY_ERROR);
         goto clean_return;
     }
-    if (!start) start = PATH_CDIRS;
-    if (path_abspath(p_abs, PATH_MSIZE, _path)) goto clean_return;
-    if (path_abspath(s_abs, PATH_MSIZE, start)) goto clean_return;
+    if (!start)
+        start = PATH_CDIRS;
+    if (path_abspath(p_abs, PATH_MSIZE, _path))
+        goto clean_return;
+    if (path_abspath(s_abs, PATH_MSIZE, start))
+        goto clean_return;
     if (path_splitdrv(buf_p, PATH_MSIZE, p_abs, PATH_MSIZE, p_abs))
         goto clean_return;
     if (path_splitdrv(buf_s, PATH_MSIZE, s_abs, PATH_MSIZE, s_abs))
@@ -877,7 +903,8 @@ int path_relpath(char buf[], size_t size, const char *_path,
     for (; cnt_same < cnt_min; ++cnt_same) {
         strcpy(buf_p, p_lst[cnt_same]);
         strcpy(buf_s, s_lst[cnt_same]);
-        if (strcmp(lower_str(buf_p), lower_str(buf_s))) break;
+        if (strcmp(lower_str(buf_p), lower_str(buf_s)))
+            break;
     }
     // 将buf_p或buf_s重置为空字符以复用其内存空间
     buf_s[0] = EMPTY_CHAR;
@@ -923,12 +950,18 @@ int path_relpath(char buf[], size_t size, const char *_path,
     ret_status = RESULT_SUCCESS;
     goto clean_return;
 clean_return:
-    if (NULL != p_abs) free(p_abs);
-    if (NULL != s_abs) free(s_abs);
-    if (NULL != buf_p) free(buf_p);
-    if (NULL != buf_s) free(buf_s);
-    if (NULL != p_lst) free(p_lst);
-    if (NULL != s_lst) free(s_lst);
+    if (NULL != p_abs)
+        free(p_abs);
+    if (NULL != s_abs)
+        free(s_abs);
+    if (NULL != buf_p)
+        free(buf_p);
+    if (NULL != buf_s)
+        free(buf_s);
+    if (NULL != p_lst)
+        free(p_lst);
+    if (NULL != s_lst)
+        free(s_lst);
     return ret_status;
 }
 
@@ -953,10 +986,10 @@ int path_abspath(char buf[], size_t size, const char *_path) {
     return (path_normpath(buf, size)) ? RESULT_SUCCESS : RESULT_FAILURE;
 }
 
-#else  // _WIN32 else POSIX
+#else // _WIN32 else POSIX
 
 // 验证路径是否是绝对路径
-// 是：返回1，否：返回0
+// 是：返回 1，否：返回 0
 bool path_isabs(const char *_path) {
     ospath_stat(STATUS_EXEC_SUCCESS);
     return *_path == PATH_NSEP;
@@ -975,10 +1008,12 @@ char *path_normcase(char path[]) {
 //    所以，如果path字符串长度为 0，也要保证字符串数组path空间大于等于2
 // 此函数改变原路径，成功返回缓冲区指针，失败返回NULL
 char *path_normpath(char path[], size_t size) {
-    char *result_s = path;
     char initial_slashes[3] = {0};
     char tmp_path[PATH_MSIZE];
-    char *token_spl, *splited[PATH_MSIZE];
+    char tmp_split[PATH_MSIZE];
+    char *result_s = path;
+    char *token_spl;
+    char *splited[PATH_MSIZE];
     size_t index = 0, req_size = 0;
     ospath_stat(STATUS_EXEC_SUCCESS);
     if (!path) {
@@ -997,17 +1032,19 @@ char *path_normpath(char path[], size_t size) {
         strcpy(path, PATH_CDIRS);
         return result_s;
     }
-    if (path[0] == PATH_NSEP) initial_slashes[0] = PATH_NSEP;
-    // posix允许一个或两个初始斜杠，但将三个或更多视为单斜杠
+    if (path[0] == PATH_NSEP)
+        initial_slashes[0] = PATH_NSEP;
+    // Posix 允许一个或两个初始斜杠，但将三个或更多视为单斜杠
     if (path[0] == PATH_NSEP && path[1] == PATH_NSEP && !path[2] == PATH_NSEP)
         initial_slashes[1] = PATH_NSEP;
-    strcpy(tmp_path, path);
-    token_spl = strtok(tmp_path, PATH_NSEPS);
+    strcpy(tmp_split, path);
+    token_spl = strtok(tmp_split, PATH_NSEPS);
     while (token_spl) {
-        if (!strcmp(token_spl, PATH_CDIRS)) goto next;
-        if (strcmp(token_spl, PATH_PDIRS) ||
+        if (strcmp(token_spl, PATH_CDIRS) == 0)
+            goto next;
+        if (strcmp(token_spl, PATH_PDIRS) != 0 ||
             (!*initial_slashes && index == 0) ||
-            (index > 0 && !strcmp(splited[index - 1], PATH_PDIRS)))
+            (index > 0 && strcmp(splited[index - 1], PATH_PDIRS) == 0))
             splited[index++] = token_spl;
         else if (index > 0)
             --index;
@@ -1027,7 +1064,8 @@ char *path_normpath(char path[], size_t size) {
             return NULL;
         }
         strcat(tmp_path, splited[i]);
-        if (i != index - 1) strcat(tmp_path, PATH_NSEPS);
+        if (i != index - 1)
+            strcat(tmp_path, PATH_NSEPS);
     }
     if (*tmp_path) {
         strcpy(path, tmp_path);
@@ -1151,7 +1189,8 @@ int path_splitpath(char buf_h[], size_t bhsize, char buf_t[], size_t btsize,
     p_len = last_sep_plus1 = strlen(tmp_path);
     while (last_sep_plus1 && tmp_path[last_sep_plus1 - 1] != PATH_NSEP)
         --last_sep_plus1;
-    if (last_sep_plus1 > 0) strncpy(head, tmp_path, last_sep_plus1);
+    if (last_sep_plus1 > 0)
+        strncpy(head, tmp_path, last_sep_plus1);
     head[last_sep_plus1] = EMPTY_CHAR;
     strcpy(stk_tmp, head);
     if (*head && strtok(stk_tmp, PATH_NSEPS)) {
@@ -1209,11 +1248,11 @@ char *path_basename(char buf_base[], size_t bfsize, const char *_path) {
 int path_relpath(char buf[], size_t bfsize, const char *_path,
                  const char *start) {
     int return_code = RESULT_SUCCESS;
-    int req_size = 0;  // 结果字符数，size要大于此数才能装下结果
+    int req_size = 0; // 结果字符数，size要大于此数才能装下结果
     // cnt_p及cnt_s：以斜杠分割后的字符串数量；cnt_min：两者中的较小值
     int cnt_min, cnt_p = 0, cnt_s = 0;
     char **p_lst = NULL, **s_lst = NULL;
-    int cnt_same = 0;  // 相同目录数量
+    int cnt_same = 0; // 相同目录数量
     char *p_abs, *s_abs, *stk, *tmp_path;
     ospath_stat(STATUS_EXEC_SUCCESS);
     if (!_path) {
@@ -1232,7 +1271,8 @@ int path_relpath(char buf[], size_t bfsize, const char *_path,
         ospath_stat(STATUS_MEMORY_ERROR);
         goto clean_return;
     }
-    if (!start) start = PATH_CDIRS;
+    if (!start)
+        start = PATH_CDIRS;
     if (path_abspath(p_abs, PATH_MSIZE, _path)) {
         return_code = RESULT_FAILURE;
         goto clean_return;
@@ -1266,7 +1306,8 @@ int path_relpath(char buf[], size_t bfsize, const char *_path,
     }
     cnt_min = cnt_p < cnt_s ? cnt_p : cnt_s;
     for (; cnt_same < cnt_min; ++cnt_same) {
-        if (strcmp(p_lst[cnt_same], s_lst[cnt_same])) break;
+        if (strcmp(p_lst[cnt_same], s_lst[cnt_same]))
+            break;
     }
     // 先将p_tmp重置为空字符串
     tmp_path[0] = EMPTY_CHAR;
@@ -1314,11 +1355,16 @@ int path_relpath(char buf[], size_t bfsize, const char *_path,
     }
     strcpy(buf, tmp_path);
 clean_return:
-    if (NULL != p_abs) free(p_abs);
-    if (NULL != s_abs) free(s_abs);
-    if (NULL != tmp_path) free(tmp_path);
-    if (NULL != p_lst) free(p_lst);
-    if (NULL != s_lst) free(s_lst);
+    if (NULL != p_abs)
+        free(p_abs);
+    if (NULL != s_abs)
+        free(s_abs);
+    if (NULL != tmp_path)
+        free(tmp_path);
+    if (NULL != p_lst)
+        free(p_lst);
+    if (NULL != s_lst)
+        free(s_lst);
     return return_code;
 }
 
@@ -1328,15 +1374,19 @@ int path_abspath(char buf[], size_t bfsize, const char *_path) {
     char tmp_path[PATH_MSIZE] = {0};
     char *end_ch = tmp_path;
     if (!path_isabs(_path)) {
-        if (path_last_state()) return RESULT_FAILURE;
-        if (!path_getcwd(tmp_path, PATH_MSIZE)) return RESULT_FAILURE;
+        if (path_last_state())
+            return RESULT_FAILURE;
+        if (!path_getcwd(tmp_path, PATH_MSIZE))
+            return RESULT_FAILURE;
     }
     if (strlen(tmp_path) + strlen(_path) >= PATH_MSIZE) {
         ospath_stat(STATUS_PATH_TOO_LONG);
         return RESULT_FAILURE;
     }
-    while (*end_ch) ++end_ch;
-    if (end_ch != tmp_path) --end_ch;
+    while (*end_ch)
+        ++end_ch;
+    if (end_ch != tmp_path)
+        --end_ch;
     if (*end_ch != PATH_NSEP && *_path != PATH_NSEP) {
         if (strlen(tmp_path) + 1 >= PATH_MSIZE) {
             ospath_stat(STATUS_PATH_TOO_LONG);
@@ -1345,7 +1395,8 @@ int path_abspath(char buf[], size_t bfsize, const char *_path) {
         strcat(tmp_path, PATH_NSEPS);
     }
     strcat(tmp_path, _path);
-    if (!path_normpath(tmp_path, PATH_MSIZE)) return RESULT_FAILURE;
+    if (!path_normpath(tmp_path, PATH_MSIZE))
+        return RESULT_FAILURE;
     if (bfsize <= strlen(tmp_path)) {
         ospath_stat(STATUS_INSFC_BUFFER);
         return RESULT_FAILURE;
@@ -1354,7 +1405,7 @@ int path_abspath(char buf[], size_t bfsize, const char *_path) {
     return RESULT_SUCCESS;
 }
 
-#endif  // _WIN32
+#endif // _WIN32
 ////////////////////////////////////////////////////////////////////////////////
 
 // 功能：将路径分割为[路径，扩展名]，扩展名包括'.'号
@@ -1380,9 +1431,11 @@ int path_splitext(char buf_h[], size_t bhsize, char buf_e[], size_t besize,
     nsep_index = strrchr(tmp_path, PATH_NSEP);
 #ifdef _WIN32
     asep_index = strrchr(tmp_path, PATH_ASEP);
-    if (asep_index > nsep_index) nsep_index = asep_index;
+    if (asep_index > nsep_index)
+        nsep_index = asep_index;
 #endif
-    if (!extsep) extsep = PATH_ESEP;
+    if (!extsep)
+        extsep = PATH_ESEP;
     dot_index = strrchr(tmp_path, extsep);
     if (dot_index > nsep_index) {
         if (NULL != nsep_index)
@@ -1481,13 +1534,17 @@ int path_prunepath(char buf[], size_t bfsize, const char *_path) {
                 goto clean_return;
             }
             strcat(p_tmp2, splited[i]);
-            if (i != count - 1) strcat(p_tmp2, PATH_NSEPS);
+            if (i != count - 1)
+                strcat(p_tmp2, PATH_NSEPS);
         }
         strcpy(buf, p_tmp2);
     }
 clean_return:
-    if (NULL != tmp_path) free(tmp_path);
-    if (NULL != p_tmp2) free(p_tmp2);
-    if (NULL != splited) free(splited);
+    if (NULL != p_tmp2)
+        free(p_tmp2);
+    if (NULL != splited)
+        free(splited);
+    if (NULL != tmp_path)
+        free(tmp_path);
     return return_code;
 }
