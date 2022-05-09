@@ -39,7 +39,7 @@ Windows平台编译方法：
   1. 安装CMake，安装GCC编译器(MinGW)；
   2. 从源代码仓库下载/克隆fpack项目源代码至本地；
   3. 在fpack项目目录打开命令窗口；
-  4. 输入命令：`cmake -DCMAKE_BUILD_TYPE:STRING=Release -B./build -G "MinGW Makefiles`;
+  4. 输入命令：`cmake -DCMAKE_BUILD_TYPE:STRING=Release -B./build -G "MinGW Makefiles"`;
   5. 输入命令：`cmake --build ./build`；
   6. 等待编译完成，生成的可执行文件在`fpack/binfile`目录下，名为`fpack.exe`。
 
