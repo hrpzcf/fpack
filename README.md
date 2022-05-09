@@ -4,13 +4,13 @@
 
 <br>
 
-# 支持平台
+# 支持的系统
 
-#### 支持linux平台
+#### Linux
 - 测试环境：wsl2-Ubuntu 20.4.3 LTS；编译器：GCC 9.3.0。
 
-#### 支持win32平台
-- 测试环境：Windows 10 x64 19044；编译器：MinGW-GCC 11.2.0 / VS2022-msvc_v142/143；WinSDK：Windows 10 10.0.19041.0。
+#### Windows
+- 测试环境：Windows 10 x64 19044；编译器：MinGW-GCC 11.2.0 / VS2022 MSVC_V142/143；WinSDK：Windows 10 10.0.19041.0。
 
 #### 其他环境未测试
 
@@ -30,7 +30,7 @@ linux平台编译方法：
 3. 在fpack项目目录打开命令窗口；
 4. 输入命令：`cmake -DCMAKE_BUILD_TYPE:STRING=Release -B./build -G "Unix Makefiles"`;
 5. 输入命令：`cmake --build ./build`；
-6. 等待编译完成，生成的可执行文件在`fpack/execfile`目录下，名为`fpack`。
+6. 等待编译完成，生成的可执行文件在`fpack/binfile`目录下，名为`fpack`。
 
 <br>
 
@@ -41,7 +41,7 @@ Windows平台编译方法：
   3. 在fpack项目目录打开命令窗口；
   4. 输入命令：`cmake -DCMAKE_BUILD_TYPE:STRING=Release -B./build -G "MinGW Makefiles`;
   5. 输入命令：`cmake --build ./build`；
-  6. 等待编译完成，生成的可执行文件在`fpack/execfile`目录下，名为`fpack.exe`。
+  6. 等待编译完成，生成的可执行文件在`fpack/binfile`目录下，名为`fpack.exe`。
 
 <br>
 
@@ -52,7 +52,7 @@ Windows平台编译方法：
     4. 使用`Visual Studio`打开解决方案文件`msbuild.sln`；
     5. 选择上方工具栏`解决方案配置`为`Release`，`x64`；
     6. 选择上方菜单栏`生成`->`生成解决方案`；
-    7. 等待编译完成，生成的可执行文件在`fpack/execfile`目录下，名为`fpack.exe`。
+    7. 等待编译完成，生成的可执行文件在`fpack/binfile`目录下，名为`fpack.exe`。
 
 <br>
 
