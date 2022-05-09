@@ -21,7 +21,7 @@
 #define COMPILER "未知"
 #endif
 
-#define VERSION     "0.1.0"
+#define VERSION     "0.1.1"
 #define AUTHOR_INFO "作者：hrpzcf，主页：https://github.com/hrpzcf"
 
 #ifdef _WIN32
