@@ -5,7 +5,7 @@
 #include <getopt.h>
 #else
 #include "../msch/getopt.h"
-#endif  // _MSC_VER
+#endif // _MSC_VER
 
 #include "../fpack/fpack.h"
 #include "../ospath/ospath.h"
@@ -49,7 +49,7 @@ int parse_cmds(int argc, char **argvs) {
     bool add = false;
     bool subs = false;
     int sub_opt;
-    fpack_t *fpack;  // 主文件信息结构体指针
+    fpack_t *fpack; // 主文件信息结构体指针
     static char fpack_file_path[PATH_MSIZE];
     static char target_dir_path[PATH_MSIZE];
     static char jpeg_file_path[PATH_MSIZE];
@@ -57,17 +57,17 @@ int parse_cmds(int argc, char **argvs) {
     static char extract_name[PATH_MSIZE];
     const char *p_extr_name = extract_name;
     // 主命令，必须是第一个命令行参数
-    const char *MAIN_HELP = "-h";    // 显示此程序的帮助信息
-    const char *MAIN_VERS = "-v";    // 显示此程序的版本信息
-    const char *MAIN_INFO = "info";  // 显示PACK文件信息及子文件列表
-    const char *MAIN_PACK = "pack";  // 将目录及文件打包为PACK文件
-    const char *MAIN_FAKE = "fake";  // 将目录及文件打包并伪装为JPEG图像
-    const char *MAIN_EXTR = "extr";  // 从PACK文件中提取目录及文件
+    const char *MAIN_HELP = "-h";   // 显示此程序的帮助信息
+    const char *MAIN_VERS = "-v";   // 显示此程序的版本信息
+    const char *MAIN_INFO = "info"; // 显示PACK文件信息及子文件列表
+    const char *MAIN_PACK = "pack"; // 将目录及文件打包为PACK文件
+    const char *MAIN_FAKE = "fake"; // 将目录及文件打包并伪装为JPEG图像
+    const char *MAIN_EXTR = "extr"; // 从PACK文件中提取目录及文件
 
-    const char *SUBOF_INFO = "p:";         // 主命令[info]的子选项
-    const char *SUBOF_PACK = "p:t:osa";    // 主命令[pack]的子选项
-    const char *SUBOF_FAKE = "j:p:t:osa";  // 主命令[fake]的子选项
-    const char *SUBOF_EXTR = "p:t:n:o";    // 主命令[extr]的子选项
+    const char *SUBOF_INFO = "p:";        // 主命令[info]的子选项
+    const char *SUBOF_PACK = "p:t:osa";   // 主命令[pack]的子选项
+    const char *SUBOF_FAKE = "j:p:t:osa"; // 主命令[fake]的子选项
+    const char *SUBOF_EXTR = "p:t:n:o";   // 主命令[extr]的子选项
     // 使用帮助信息
     const char *PACK_USEAGE =
         "用法: %s [子命令] [选项[, 参数]]...\n\n"
@@ -140,8 +140,7 @@ int parse_cmds(int argc, char **argvs) {
                 PACK_ERROR "命令行参数不足，请使用-h命令查看使用帮助。\n");
         return EXIT_CODE_FAILURE;
     }
-    // 查找命令行参数从第3个开始，否则查不到
-    optind = 2;
+    optind = 2; // 查找参数从第3个开始，否则查不到（getopt.h全局变量）
     path_splitext(exec_name, PATH_MSIZE, NULL, 0,
                   path_basename(NULL, 0, argvs[0]), '.');
     if (!strcmp(argvs[1], MAIN_HELP)) {
@@ -153,35 +152,35 @@ int parse_cmds(int argc, char **argvs) {
     } else if (!strcmp(argvs[1], MAIN_PACK)) {
         while ((sub_opt = getopt(argc, argvs, SUBOF_PACK)) != -1) {
             switch (sub_opt) {
-                case 'p':
-                    if (strlen(optarg) >= PATH_MSIZE) {
-                        fprintf(stderr, PACK_ERROR "路径太长：%s\n", optarg);
-                        return EXIT_CODE_FAILURE;
-                    }
-                    strcpy(fpack_file_path, optarg);
-                    break;
-                case 't':
-                    if (strlen(optarg) >= PATH_MSIZE) {
-                        fprintf(stderr, PACK_ERROR "路径太长：%s\n", optarg);
-                        return EXIT_CODE_FAILURE;
-                    }
-                    strcpy(target_dir_path, optarg);
-                    break;
-                case 'a':
-                    add = true;
-                    break;
-                case 's':
-                    subs = true;
-                    break;
-                case 'o':
-                    overwrite = true;
-                    break;
-                default:
-                    fprintf(stderr,
-                            PACK_ERROR
-                            "没有此选项：-%c，请使用'%s -h'命令查看使用帮助。",
-                            optopt, exec_name);
+            case 'p':
+                if (strlen(optarg) >= PATH_MSIZE) {
+                    fprintf(stderr, PACK_ERROR "路径太长：%s\n", optarg);
                     return EXIT_CODE_FAILURE;
+                }
+                strcpy(fpack_file_path, optarg);
+                break;
+            case 't':
+                if (strlen(optarg) >= PATH_MSIZE) {
+                    fprintf(stderr, PACK_ERROR "路径太长：%s\n", optarg);
+                    return EXIT_CODE_FAILURE;
+                }
+                strcpy(target_dir_path, optarg);
+                break;
+            case 'a':
+                add = true;
+                break;
+            case 's':
+                subs = true;
+                break;
+            case 'o':
+                overwrite = true;
+                break;
+            default:
+                fprintf(stderr,
+                        PACK_ERROR
+                        "没有此选项：-%c，请使用'%s -h'命令查看使用帮助。",
+                        optopt, exec_name);
+                return EXIT_CODE_FAILURE;
             }
         }
         if (!*target_dir_path) {
@@ -206,44 +205,46 @@ int parse_cmds(int argc, char **argvs) {
     } else if (!strcmp(argvs[1], MAIN_EXTR)) {
         while ((sub_opt = getopt(argc, argvs, SUBOF_EXTR)) != -1) {
             switch (sub_opt) {
-                case 'n':
-                    if (strlen(optarg) >= PATH_MSIZE) {
-                        fprintf(stderr, PACK_ERROR "输入的文件名过长\n");
-                        return EXIT_CODE_FAILURE;
-                    }
-                    strcpy(extract_name, optarg);
-                    break;
-                case 'p':
-                    if (strlen(optarg) >= PATH_MSIZE) {
-                        fprintf(stderr, PACK_ERROR "路径太长：%s\n", optarg);
-                        return EXIT_CODE_FAILURE;
-                    }
-                    strcpy(fpack_file_path, optarg);
-                    break;
-                case 't':
-                    if (strlen(optarg) >= PATH_MSIZE) {
-                        fprintf(stderr, PACK_ERROR "路径太长：%s\n", optarg);
-                        return EXIT_CODE_FAILURE;
-                    }
-                    strcpy(target_dir_path, optarg);
-                    break;
-                case 'o':
-                    overwrite = true;
-                    break;
-                default:
-                    fprintf(stderr,
-                            PACK_ERROR
-                            "没有此选项：-%c，请使用'%s -h'命令查看使用帮助。",
-                            optopt, exec_name);
+            case 'n':
+                if (strlen(optarg) >= PATH_MSIZE) {
+                    fprintf(stderr, PACK_ERROR "输入的文件名过长\n");
                     return EXIT_CODE_FAILURE;
+                }
+                strcpy(extract_name, optarg);
+                break;
+            case 'p':
+                if (strlen(optarg) >= PATH_MSIZE) {
+                    fprintf(stderr, PACK_ERROR "路径太长：%s\n", optarg);
+                    return EXIT_CODE_FAILURE;
+                }
+                strcpy(fpack_file_path, optarg);
+                break;
+            case 't':
+                if (strlen(optarg) >= PATH_MSIZE) {
+                    fprintf(stderr, PACK_ERROR "路径太长：%s\n", optarg);
+                    return EXIT_CODE_FAILURE;
+                }
+                strcpy(target_dir_path, optarg);
+                break;
+            case 'o':
+                overwrite = true;
+                break;
+            default:
+                fprintf(stderr,
+                        PACK_ERROR
+                        "没有此选项：-%c，请使用'%s -h'命令查看使用帮助。",
+                        optopt, exec_name);
+                return EXIT_CODE_FAILURE;
             }
         }
         if (!*fpack_file_path) {
             fprintf(stderr, PACK_ERROR "未输入主文件路径(应由[-p]选项指定)\n");
             return EXIT_CODE_FAILURE;
         }
-        if (!*target_dir_path) strcpy(target_dir_path, PATH_CDIRS);
-        if (!*extract_name) p_extr_name = NULL;
+        if (!*target_dir_path)
+            strcpy(target_dir_path, PATH_CDIRS);
+        if (!*extract_name)
+            p_extr_name = NULL;
         if (is_fake_jpeg(fpack_file_path))
             fpack = fpack_fakej_open(fpack_file_path);
         else
@@ -254,19 +255,19 @@ int parse_cmds(int argc, char **argvs) {
     } else if (!strcmp(argvs[1], MAIN_INFO)) {
         while ((sub_opt = getopt(argc, argvs, SUBOF_INFO)) != -1) {
             switch (sub_opt) {
-                case 'p':
-                    if (strlen(optarg) >= PATH_MSIZE) {
-                        fprintf(stderr, PACK_ERROR "路径太长：%s\n", optarg);
-                        return EXIT_CODE_FAILURE;
-                    }
-                    strcpy(fpack_file_path, optarg);
-                    break;
-                default:
-                    fprintf(stderr,
-                            PACK_ERROR
-                            "没有此选项：-%c，请使用'%s -h'命令查看使用帮助。",
-                            optopt, exec_name);
+            case 'p':
+                if (strlen(optarg) >= PATH_MSIZE) {
+                    fprintf(stderr, PACK_ERROR "路径太长：%s\n", optarg);
                     return EXIT_CODE_FAILURE;
+                }
+                strcpy(fpack_file_path, optarg);
+                break;
+            default:
+                fprintf(stderr,
+                        PACK_ERROR
+                        "没有此选项：-%c，请使用'%s -h'命令查看使用帮助。",
+                        optopt, exec_name);
+                return EXIT_CODE_FAILURE;
             }
         }
         if (!*fpack_file_path) {
@@ -279,42 +280,42 @@ int parse_cmds(int argc, char **argvs) {
     } else if (!strcmp(argvs[1], MAIN_FAKE)) {
         while ((sub_opt = getopt(argc, argvs, SUBOF_FAKE)) != -1) {
             switch (sub_opt) {
-                case 'p':
-                    if (strlen(optarg) >= PATH_MSIZE) {
-                        fprintf(stderr, PACK_ERROR "路径太长：%s\n", optarg);
-                        return EXIT_CODE_FAILURE;
-                    }
-                    strcpy(fpack_file_path, optarg);
-                    break;
-                case 't':
-                    if (strlen(optarg) >= PATH_MSIZE) {
-                        fprintf(stderr, PACK_ERROR "路径太长：%s\n", optarg);
-                        return EXIT_CODE_FAILURE;
-                    }
-                    strcpy(target_dir_path, optarg);
-                    break;
-                case 'a':
-                    add = true;
-                    break;
-                case 's':
-                    subs = true;
-                    break;
-                case 'o':
-                    overwrite = true;
-                    break;
-                case 'j':
-                    if (strlen(optarg) >= PATH_MSIZE) {
-                        fprintf(stderr, PACK_ERROR "路径太长：%s\n", optarg);
-                        return EXIT_CODE_FAILURE;
-                    }
-                    strcpy(jpeg_file_path, optarg);
-                    break;
-                default:
-                    fprintf(stderr,
-                            PACK_ERROR
-                            "没有此选项：-%c，请使用'%s -h'命令查看使用帮助。",
-                            optopt, exec_name);
+            case 'p':
+                if (strlen(optarg) >= PATH_MSIZE) {
+                    fprintf(stderr, PACK_ERROR "路径太长：%s\n", optarg);
                     return EXIT_CODE_FAILURE;
+                }
+                strcpy(fpack_file_path, optarg);
+                break;
+            case 't':
+                if (strlen(optarg) >= PATH_MSIZE) {
+                    fprintf(stderr, PACK_ERROR "路径太长：%s\n", optarg);
+                    return EXIT_CODE_FAILURE;
+                }
+                strcpy(target_dir_path, optarg);
+                break;
+            case 'a':
+                add = true;
+                break;
+            case 's':
+                subs = true;
+                break;
+            case 'o':
+                overwrite = true;
+                break;
+            case 'j':
+                if (strlen(optarg) >= PATH_MSIZE) {
+                    fprintf(stderr, PACK_ERROR "路径太长：%s\n", optarg);
+                    return EXIT_CODE_FAILURE;
+                }
+                strcpy(jpeg_file_path, optarg);
+                break;
+            default:
+                fprintf(stderr,
+                        PACK_ERROR
+                        "没有此选项：-%c，请使用'%s -h'命令查看使用帮助。",
+                        optopt, exec_name);
+                return EXIT_CODE_FAILURE;
             }
         }
         if (!*target_dir_path) {
@@ -358,16 +359,17 @@ int main(int argc, char *argvs[]) {
 // VS工程：定义在'属性管理器->msbuild->Debug'中
 #ifdef PACK_DEBUG
     printf(PACK_WARN "调试：请更改'entry->main.c->main'函数的调试参数\n");
-    argc = 4;
+    argc = 6;
     char *cust[256];
+    // ./fpack pack -p ./p.pfs -t ./
     cust[0] = "./fpack";
-    cust[1] = "info";
+    cust[1] = "pack";
     cust[2] = "-p";
-    cust[3] = "f.jpeg";
-    /*cust[4] = "-t";
-    cust[5] = ".";
-    cust[6] = "-j";
-    cust[7] = "1.jpeg";*/
+    cust[3] = "./p.pfs";
+    cust[4] = "-t";
+    cust[5] = "./";
+    // cust[6] = "-j";
+    // cust[7] = "1.jpeg";
     return parse_cmds(argc, cust);
 #else
     return parse_cmds(argc, argvs);

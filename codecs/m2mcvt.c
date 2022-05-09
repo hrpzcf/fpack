@@ -11,22 +11,28 @@
 int str_a2u(char buf[], int bfsize, char *ansiSTR) {
     int length;
     char *ansi_tmp;
-    if (NULL == (ansi_tmp = malloc(strlen(ansiSTR) + 1))) return 0;
+    if (NULL == (ansi_tmp = malloc(strlen(ansiSTR) + 1)))
+        return 0;
     strcpy(ansi_tmp, ansiSTR);
     length = MultiByteToWideChar(CP_ACP, 0, ansi_tmp, -1, NULL, 0);
-    if (length <= 0) return 0;
+    if (length <= 0)
+        return 0;
     WCHAR *new_wchars = malloc(sizeof(WCHAR) * length);
-    if (NULL == new_wchars) return 0;
+    if (NULL == new_wchars)
+        return 0;
     length = MultiByteToWideChar(CP_ACP, 0, ansi_tmp, -1, new_wchars, length);
-    if (length <= 0) return 0;
+    if (length <= 0)
+        return 0;
     if (NULL == buf || bfsize <= 0)
         length = WideCharToMultiByte(CP_UTF8, 0, new_wchars, -1, NULL, 0, NULL,
                                      NULL);
     else
         length = WideCharToMultiByte(CP_UTF8, 0, new_wchars, -1, buf, bfsize,
                                      NULL, NULL);
-    if (NULL != ansi_tmp) free(ansi_tmp);
-    if (NULL != new_wchars) free(new_wchars);
+    if (NULL != ansi_tmp)
+        free(ansi_tmp);
+    if (NULL != new_wchars)
+        free(new_wchars);
     return length;
 }
 
@@ -40,22 +46,28 @@ int str_a2u(char buf[], int bfsize, char *ansiSTR) {
 int str_u2a(char buf[], int bfsize, char *utf8STR) {
     int length;
     char *utf8_tmp;
-    if (NULL == (utf8_tmp = malloc(strlen(utf8STR) + 1))) return 0;
+    if (NULL == (utf8_tmp = malloc(strlen(utf8STR) + 1)))
+        return 0;
     strcpy(utf8_tmp, utf8STR);
     length = MultiByteToWideChar(CP_UTF8, 0, utf8_tmp, -1, NULL, 0);
-    if (length <= 0) return 0;
+    if (length <= 0)
+        return 0;
     WCHAR *new_wchars = malloc(sizeof(WCHAR) * length);
-    if (NULL == new_wchars) return 0;
+    if (NULL == new_wchars)
+        return 0;
     length = MultiByteToWideChar(CP_UTF8, 0, utf8_tmp, -1, new_wchars, length);
-    if (length <= 0) return 0;
+    if (length <= 0)
+        return 0;
     if (NULL == buf || bfsize <= 0)
-        length = WideCharToMultiByte(CP_ACP, 0, new_wchars, -1, NULL, 0, NULL,
-                                     NULL);
+        length =
+            WideCharToMultiByte(CP_ACP, 0, new_wchars, -1, NULL, 0, NULL, NULL);
     else
         length = WideCharToMultiByte(CP_ACP, 0, new_wchars, -1, buf, bfsize,
                                      NULL, NULL);
-    if (NULL != utf8_tmp) free(utf8_tmp);
-    if (NULL != new_wchars) free(new_wchars);
+    if (NULL != utf8_tmp)
+        free(utf8_tmp);
+    if (NULL != new_wchars)
+        free(new_wchars);
     return length;
 }
 

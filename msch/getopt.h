@@ -126,7 +126,7 @@ static char *place = EMSG; /* option letter processing */
 
 /* XXX: set optreset to 1 rather than these two */
 static int nonopt_start = -1; /* first non option argument (for permute) */
-static int nonopt_end = -1; /* first option after non options (for permute) */
+static int nonopt_end = -1;   /* first option after non options (for permute) */
 
 /* Error messages */
 static const char recargchar[] = "option requires an argument -- %c";
@@ -138,7 +138,8 @@ static const char illoptstring[] = "unknown option -- %s";
 
 static void _vwarnx(const char *fmt, va_list ap) {
     (void)fprintf(stderr, "%s: ", __progname);
-    if (fmt != NULL) (void)vfprintf(stderr, fmt, ap);
+    if (fmt != NULL)
+        (void)vfprintf(stderr, fmt, ap);
     (void)fprintf(stderr, "\n");
 }
 
@@ -313,7 +314,8 @@ static int parse_long_options(char *const *nargv, const char *options,
          * If this is a known short option, don't allow
          * a partial match of a single character.
          */
-        if (short_too && current_argv_len == 1) continue;
+        if (short_too && current_argv_len == 1)
+            continue;
 
         if (match == -1) /* partial match */
             match = i;
@@ -322,13 +324,15 @@ static int parse_long_options(char *const *nargv, const char *options,
     }
     if (ambiguous) {
         /* ambiguous abbreviation */
-        if (PRINT_ERROR) warnx(ambig, (int)current_argv_len, current_argv);
+        if (PRINT_ERROR)
+            warnx(ambig, (int)current_argv_len, current_argv);
         optopt = 0;
         return (BADCH);
     }
     if (match != -1) { /* option found */
         if (long_options[match].has_arg == no_argument && has_equal) {
-            if (PRINT_ERROR) warnx(noarg, (int)current_argv_len, current_argv);
+            if (PRINT_ERROR)
+                warnx(noarg, (int)current_argv_len, current_argv);
             /*
              * XXX: GNU sets optopt to val regardless of flag
              */
@@ -355,7 +359,8 @@ static int parse_long_options(char *const *nargv, const char *options,
              * Missing argument; leading ':' indicates no error
              * should be generated.
              */
-            if (PRINT_ERROR) warnx(recargstring, current_argv);
+            if (PRINT_ERROR)
+                warnx(recargstring, current_argv);
             /*
              * XXX: GNU sets optopt to val regardless of flag
              */
@@ -371,11 +376,13 @@ static int parse_long_options(char *const *nargv, const char *options,
             --optind;
             return (-1);
         }
-        if (PRINT_ERROR) warnx(illoptstring, current_argv);
+        if (PRINT_ERROR)
+            warnx(illoptstring, current_argv);
         optopt = 0;
         return (BADCH);
     }
-    if (idx) *idx = match;
+    if (idx)
+        *idx = match;
     if (long_options[match].flag) {
         *long_options[match].flag = long_options[match].val;
         return (0);
@@ -395,13 +402,15 @@ static int getopt_internal(int nargc, char *const *nargv, const char *options,
     int optchar, short_too;
     static int posixly_correct = -1;
 
-    if (options == NULL) return (-1);
+    if (options == NULL)
+        return (-1);
 
     /*
      * XXX Some GNU programs (like cvs) set optind to 0 instead of
      * XXX using optreset.  Work around this braindamage.
      */
-    if (optind == 0) optind = optreset = 1;
+    if (optind == 0)
+        optind = optreset = 1;
 
     /*
      * Disable GNU extensions if POSIXLY_CORRECT is set or options
@@ -416,10 +425,12 @@ static int getopt_internal(int nargc, char *const *nargv, const char *options,
         flags |= FLAG_ALLARGS;
     else if (posixly_correct || *options == '+')
         flags &= ~FLAG_PERMUTE;
-    if (*options == '+' || *options == '-') options++;
+    if (*options == '+' || *options == '-')
+        options++;
 
     optarg = NULL;
-    if (optreset) nonopt_start = nonopt_end = -1;
+    if (optreset)
+        nonopt_start = nonopt_end = -1;
 start:
     if (optreset || !*place) { /* update scanning pointer */
         optreset = 0;
@@ -469,7 +480,8 @@ start:
             /* process next argument */
             goto start;
         }
-        if (nonopt_start != -1 && nonopt_end == -1) nonopt_end = optind;
+        if (nonopt_start != -1 && nonopt_end == -1)
+            nonopt_end = optind;
 
         /*
          * If we have "-" do nothing, if "--" we are done.
@@ -520,9 +532,12 @@ start:
          * options, return -1 (non-option) as per POSIX.
          * Otherwise, it is an unknown option character (or ':').
          */
-        if (optchar == (int)'-' && *place == '\0') return (-1);
-        if (!*place) ++optind;
-        if (PRINT_ERROR) warnx(illoptchar, optchar);
+        if (optchar == (int)'-' && *place == '\0')
+            return (-1);
+        if (!*place)
+            ++optind;
+        if (PRINT_ERROR)
+            warnx(illoptchar, optchar);
         optopt = optchar;
         return (BADCH);
     }
@@ -532,7 +547,8 @@ start:
             /* NOTHING */;
         else if (++optind >= nargc) { /* no arg */
             place = EMSG;
-            if (PRINT_ERROR) warnx(recargchar, optchar);
+            if (PRINT_ERROR)
+                warnx(recargchar, optchar);
             optopt = optchar;
             return (BADARG);
         } else /* white space */
@@ -542,7 +558,8 @@ start:
         return (optchar);
     }
     if (*++oli != ':') { /* doesn't take argument */
-        if (!*place) ++optind;
+        if (!*place)
+            ++optind;
     } else { /* takes (optional) argument */
         optarg = NULL;
         if (*place) /* no white space */
@@ -550,7 +567,8 @@ start:
         else if (oli[1] != ':') {    /* arg not optional */
             if (++optind >= nargc) { /* no arg */
                 place = EMSG;
-                if (PRINT_ERROR) warnx(recargchar, optchar);
+                if (PRINT_ERROR)
+                    warnx(recargchar, optchar);
                 optopt = optchar;
                 return (BADARG);
             } else
