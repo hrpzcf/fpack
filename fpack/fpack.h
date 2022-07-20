@@ -75,7 +75,7 @@ typedef struct {
     char emt[EM_N];   // 预留空字节
     int16_t sp[SP_N]; // 文件规范版本
     int64_t count;    // 包含文件总数
-} head_t;             // 文件头信息结
+} head_t;             // 文件头信息结构体
 #pragma pack()
 
 // 子文件信息，包括文件大小,文件名长度,文件名
