@@ -21,8 +21,7 @@
 #define COMPILER "未知"
 #endif
 
-#define VERSION     "0.1.1"
-#define AUTHOR_INFO "作者：hrpzcf，主页：https://github.com/hrpzcf"
+#define AUTHOR_INFO "作者：hrpzcf，源码：https://github.com/hrpzcf/fpack"
 
 #ifdef _WIN32
 #ifndef _WIN64
@@ -40,9 +39,7 @@
 #define PLATFORM "posix"
 #endif
 
-#define BUILT_INFO \
-    "名称：%s，版本：" VERSION ", 平台: " PLATFORM ", 编译器: " COMPILER \
-    "，编译时间：" __DATE__ ", " __TIME__
+#define BUILT_INFO "名称：%s，版本：" PACK_VERSION ", 平台: " PLATFORM ", 编译器: " COMPILER "，编译时间：" __DATE__ ", " __TIME__
 
 int parse_cmds(int argc, char **argvs) {
     bool overwrite = false;
@@ -69,80 +66,44 @@ int parse_cmds(int argc, char **argvs) {
     const char *SUBOF_FAKE = "j:p:t:osa"; // 主命令[fake]的子选项
     const char *SUBOF_EXTR = "p:t:n:o";   // 主命令[extr]的子选项
     // 使用帮助信息
-    const char *PACK_USEAGE =
-        "用法: %s [子命令] [选项[, 参数]]...\n\n"
-        "可用的子命令:\n"
-        "   [-v]\t\t显示程序版本信息及其他信息。\n"
-        "   [-h]\t\t显示此帮助信息。\n"
-        "   [info]\t显示PACK文件的子文件列表及其他信息。\n"
-        "   [pack]\t将文件或目录打包为一个PACK文件。\n"
-        "   [fake]\t将文件或目录打包并伪装为一个JPEG文件。\n"
-        "   [extr]\t提取PACK文件中包含文件及目录。\n\n"
+    const char *PACK_USEAGE = "用法: %s [子命令] [选项[, 参数]]...\n\n"
+                              "可用的子命令:\n"
+                              "   [-v]\t\t显示程序版本信息及其他信息。\n"
+                              "   [-h]\t\t显示此帮助信息。\n"
+                              "   [info]\t显示PACK文件的子文件列表及其他信息。\n"
+                              "   [pack]\t将文件或目录打包为一个PACK文件。\n"
+                              "   [fake]\t将文件或目录打包并伪装为一个JPEG文件。\n"
+                              "   [extr]\t提取PACK文件中包含文件及目录。\n\n"
 
-        "子命令的选项:\n"
-        "   [info]命令选项:\n"
-        "       [-p] "
-        "文件路径\t要从中读取并显示子文件/目录列表及其他信息的PACK文件路径。\n"
+                              "子命令的选项:\n"
+                              "   [info]命令选项:\n"
+                              "       [-p] 文件路径\t要从中读取并显示子文件/目录列表及其他信息的PACK文件路径。\n"
 
-        "   [pack]命令选项:\n"
-        "       [-p] "
-        "文件路径\t即将生成的PACK文件的路径，应包括文件名，文件名后缀名虽不影"
-        "响打包，但建议以'.pfs'结尾。\n"
-        "       [-t] "
-        "路径\t即将被打包的目标，该目标将被打包到[-p]"
-        "选项指定的PACK文件。此选项可以指定文件或目录路径。\n"
-        "       "
-        "[-s]\t\t如果[-t]选项指定的是一个目录，则搜索该目录的子目录，如果[-t]"
-        "选项指定的是文件则不生效。忽略此选项则不搜索子目录。\n"
-        "       "
-        "[-a]\t\t如果[-p]"
-        "选项指定的文件已存在，指定此选项将把目标追加到已存在的文件，忽略此选"
-        "项则直接退出。[-p]选项指定的文件不存在则此选项不生效。\n"
+                              "   [pack]命令选项:\n"
+                              "       [-p] 文件路径\t即将生成的PACK文件的路径，应包括文件名，文件名后缀名虽不影响打包，但建议以'.fp'结尾。\n"
+                              "       [-t] 路径\t即将被打包的目标，该目标将被打包到[-p]选项指定的PACK文件。此选项可以指定文件或目录路径。\n"
+                              "       [-s]\t\t如果[-t]选项指定的是一个目录，则搜索该目录的子目录，如果[-t]选项指定的是文件则不生效。忽略此选项则不搜索子目录。\n"
+                              "       [-a]\t\t如果[-p]选项指定的文件已存在，指定此选项将把目标追加到已存在的文件，忽略此选项则直接退出。[-p]选项指定的文件不存在则此选项不生效。\n"
 
-        "   [fake]命令选项:\n"
-        "       [-p] "
-        "文件路径\t即将生成的伪装成JPEG图片的PACK文件的路径，应包括文件名，文"
-        "件名后缀名虽不影响打包，但建议以'.jpeg'"
-        "结尾，这样生成的文件表面看起来就是正常的JPEG文件。\n"
-        "       [-j] "
-        "文件路径\t有效的JPEG文件的路径，此路径的JPEG文件不会被修改，程序将使"
-        "用其副本。此路径指定的文件需是真正的JPEG文件，通过更改其他格式文件的"
-        "后缀名是无效的。\n"
-        "       [-t] "
-        "路径\t即将被打包的目标，该目标将被打包到[-p]"
-        "选项指定的PACK文件。此选项可以指定文件或目录路径。\n"
-        "       "
-        "[-s]\t\t如果[-t]选项指定的是一个目录，则搜索该目录的子目录，如果[-t]"
-        "选项指定的是文件则不生效。忽略此选项则不搜索子目录。\n"
-        "       "
-        "[-a]\t\t如果[-p]"
-        "选项指定的文件已存在，指定此选项将把目标追加到已存在的文件，忽略此选"
-        "项则直接退出。[-p]选项指定的文件不存在则此选项不生效。\n"
+                              "   [fake]命令选项:\n"
+                              "       [-p] 文件路径\t即将生成的伪装成JPEG图片的PACK文件的路径，应包括文件名，文件后缀名虽不影响打包，但建议以'.jpg'或'.jpeg'作为后缀名，这样生成的文件表面看起来就是正常的JPEG文件。\n"
+                              "       [-j] 文件路径\t有效的JPEG文件的路径，此路径的JPEG文件不会被修改，程序将使用其副本。此路径指定的文件需是真正的JPEG文件，通过更改其他格式文件的后缀名是无效的。\n"
+                              "       [-t] 路径\t即将被打包的目标，该目标将被打包到[-p]选项指定的PACK文件。此选项可以指定文件或目录路径。\n"
+                              "       [-s]\t\t如果[-t]选项指定的是一个目录，则搜索该目录的子目录，如果[-t]选项指定的是文件则不生效。忽略此选项则不搜索子目录。\n"
+                              "       [-a]\t\t如果[-p]选项指定的文件已存在，指定此选项将把目标追加到已存在的文件，忽略此选项则直接退出。[-p]选项指定的文件不存在则此选项不生效。\n"
 
-        "   [extr]命令选项:\n"
-        "       [-p] "
-        "文件路径\tPACK文件的路径，程序将从此路径指示的PACK文件提取子文件或目"
-        "录。\n"
-        "       [-t] "
-        "目录路径\t此选项指定提取子文件时子文件的保存目录，忽略此选项则提取到"
-        "当前目录。\n"
-        "       [-n] "
-        "文件名\t想要从[-p]"
-        "选项指定的PACK文件中提取的子文件或目录的名称。注意，这里<文件名>"
-        "指的是使用info命令列出的完整名称，忽略此选项则提取全部。\n"
-        "       "
-        "[-o]\t\t提取子文件时，如果[-t]"
-        "选项指定的目录中已存在同名文件，此选项指示将其覆盖，忽略此选项则不提"
-        "取该子文件。\n\n";
+                              "   [extr]命令选项:\n"
+                              "       [-p] 文件路径\tPACK文件的路径，程序将从此路径指示的PACK文件提取子文件或目录。\n"
+                              "       [-t] 目录路径\t此选项指定提取子文件时子文件的保存目录，忽略此选项则提取到当前目录。\n"
+                              "       [-n] 文件名\t想要从[-p]选项指定的PACK文件中提取的子文件或目录的名称。注意，这里<文件名>指的是使用info命令列出的完整名称，忽略此选项则提取全部。\n"
+                              "       [-o]\t\t如果是用了此选项，提取子文件时如果[-t]选项指定的目录中已存在同名文件则直接覆盖，忽略此选项则不提取该子文件。\n\n";
 
     if (argc < 2) {
-        fprintf(stderr,
-                PACK_ERROR "命令行参数不足，请使用-h命令查看使用帮助。\n");
+        fprintf(stderr, PACK_ERROR "命令行参数不足，请使用-h命令查看使用帮助。\n");
         return EXIT_CODE_FAILURE;
     }
     optind = 2; // 查找参数从第3个开始，否则查不到（getopt.h全局变量）
-    path_splitext(exec_name, PATH_MSIZE, NULL, 0,
-                  path_basename(NULL, 0, argvs[0]), '.');
+    path_splitext(exec_name, PATH_MSIZE, NULL, 0, path_basename(NULL, 0, argvs[0]), '.');
     if (!strcmp(argvs[1], MAIN_HELP)) {
         printf(PACK_USEAGE, exec_name);
         return EXIT_CODE_SUCCESS;
@@ -176,10 +137,7 @@ int parse_cmds(int argc, char **argvs) {
                 overwrite = true;
                 break;
             default:
-                fprintf(stderr,
-                        PACK_ERROR
-                        "没有此选项：-%c，请使用'%s -h'命令查看使用帮助。",
-                        optopt, exec_name);
+                fprintf(stderr, PACK_ERROR "没有此选项：-%c，请使用'%s -h'命令查看使用帮助。", optopt, exec_name);
                 return EXIT_CODE_FAILURE;
             }
         }
@@ -230,10 +188,7 @@ int parse_cmds(int argc, char **argvs) {
                 overwrite = true;
                 break;
             default:
-                fprintf(stderr,
-                        PACK_ERROR
-                        "没有此选项：-%c，请使用'%s -h'命令查看使用帮助。",
-                        optopt, exec_name);
+                fprintf(stderr, PACK_ERROR "没有此选项：-%c，请使用'%s -h'命令查看使用帮助。", optopt, exec_name);
                 return EXIT_CODE_FAILURE;
             }
         }
@@ -263,10 +218,7 @@ int parse_cmds(int argc, char **argvs) {
                 strcpy(fpack_file_path, optarg);
                 break;
             default:
-                fprintf(stderr,
-                        PACK_ERROR
-                        "没有此选项：-%c，请使用'%s -h'命令查看使用帮助。",
-                        optopt, exec_name);
+                fprintf(stderr, PACK_ERROR "没有此选项：-%c，请使用'%s -h'命令查看使用帮助。", optopt, exec_name);
                 return EXIT_CODE_FAILURE;
             }
         }
@@ -311,10 +263,7 @@ int parse_cmds(int argc, char **argvs) {
                 strcpy(jpeg_file_path, optarg);
                 break;
             default:
-                fprintf(stderr,
-                        PACK_ERROR
-                        "没有此选项：-%c，请使用'%s -h'命令查看使用帮助。",
-                        optopt, exec_name);
+                fprintf(stderr, PACK_ERROR "没有此选项：-%c，请使用'%s -h'命令查看使用帮助。", optopt, exec_name);
                 return EXIT_CODE_FAILURE;
             }
         }
@@ -338,16 +287,13 @@ int parse_cmds(int argc, char **argvs) {
             printf(PACK_WARN "已存在PACK文件，[-j]及[-o]选项将不生效。\n");
             fpack = fpack_fakej_open(fpack_file_path);
         } else {
-            fpack =
-                fpack_fakej_make(fpack_file_path, jpeg_file_path, overwrite);
+            fpack = fpack_fakej_make(fpack_file_path, jpeg_file_path, overwrite);
         }
         fpack_pack(target_dir_path, subs, fpack, add);
         fpack_close(fpack);
         return EXIT_CODE_SUCCESS;
     } else {
-        fprintf(stderr,
-                PACK_ERROR "没有此命令：%s，请使用'%s -h'命令查看使用帮助。\n",
-                argvs[1], exec_name);
+        fprintf(stderr, PACK_ERROR "没有此命令：%s，请使用'%s -h'命令查看使用帮助。\n", argvs[1], exec_name);
         return EXIT_CODE_FAILURE;
     }
     return EXIT_CODE_SUCCESS;

@@ -8,7 +8,7 @@
 
 #include "../ospath/ospath.h"
 
-#define PACK_VERSION "0.1.0"
+#define PACK_VERSION "0.1.1"
 
 #define FILE_MAX   LLONG_MAX  // 文件最大字节数
 #define PM         PATH_MSIZE // 路径最大字节数
@@ -58,7 +58,7 @@ typedef struct {
 #define L_BUF_SIZE 8388608LL   // 文件读写缓冲区大小下限
 #define U_BUF_SIZE 134217728LL // 文件读写缓冲区大小上限
 #define DIR_SIZE   -1          // 定义目录本身大小为-1
-#define EQS_MAX    512 // 显示子文件信息表时分隔符缓冲区大小
+#define EQS_MAX    512         // 显示子文件信息表时分隔符缓冲区大小
 
 #define JPEG_SIG     0xFF // JPEG字段标记码
 #define JPEG_START   0xD8 // JPEG图像起始
@@ -114,8 +114,7 @@ static const head_t df_head = {
 
 // 出错时打印调试信息及退出程序
 #define PRINT_ERROR_AND_ABORT(STR) \
-    fprintf(stderr, PACK_ERROR STR ": 源码 %s 第 %d 行，[ %s ]\n", \
-            path_basename(NULL, 0ULL, __FILE__), __LINE__, PACK_VERSION); \
+    fprintf(stderr, PACK_ERROR STR ": 源码 %s 第 %d 行，[ %s ]\n", path_basename(NULL, 0ULL, __FILE__), __LINE__, PACK_VERSION); \
     exit(EXIT_CODE_FAILURE)
 
 // 出错时判断是否关闭文件流并删除文件
@@ -131,20 +130,18 @@ static const head_t df_head = {
 #define EM_S (EM_N * sizeof(char))    // head的emt字段大小
 #define FC_S (sizeof(int64_t))        // head的count字段大小
 
-#define FCNT_O (ID_S + SP_S + EM_S) // fcount字段在PACK文件中的偏移量
+#define FCNT_O (ID_S + SP_S + EM_S)        // fcount字段在PACK文件中的偏移量
 #define DATA_O (ID_S + SP_S + EM_S + FC_S) // 数据块起始偏移量
-#define FSNL_S (FS_S + NL_S) // 结构体finfo_t中fsize和fnlen的类型大小之和
+#define FSNL_S (FS_S + NL_S)               // 结构体finfo_t中fsize和fnlen的类型大小之和
 
 bool is_fake_jpeg(const char *fakej_path);
 fpack_t *fpack_make(const char *file_path, bool overwrite);
 fpack_t *fpack_open(const char *file_path);
 void fpack_close(fpack_t *st_pfile);
 fpack_t *fpack_pack(const char *topack, bool sd, fpack_t *fpack, bool add);
-fpack_t *fpack_extract(const char *name, const char *save_path, int overwrite,
-                       fpack_t *fpack);
+fpack_t *fpack_extract(const char *name, const char *save_path, int overwrite, fpack_t *fpack);
 fpack_t *fpack_info(const char *pk_path);
-fpack_t *fpack_fakej_make(const char *pf_path, const char *jpeg_path,
-                          bool overwrite);
+fpack_t *fpack_fakej_make(const char *pf_path, const char *jpeg_path, bool overwrite);
 fpack_t *fpack_fakej_open(const char *fake_jpeg_path);
 
 #endif //__PACKFILE_H

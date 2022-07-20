@@ -66,8 +66,7 @@ typedef struct {
 
 int path_last_state(void); //获取最后一次函数执行的错误状态
 scanner_t *path_mkscan(size_t block);
-int path_scanpath(const char *dir_path, int ftype, int subdirs,
-                  scanner_t **const pp_scanner);
+int path_scanpath(const char *dir_path, int ftype, int subdirs, scanner_t **const pp_scanner);
 int path_delscan(scanner_t *scanlst);
 bool path_exists(const char *_path);
 bool path_isdir(const char *_path);
@@ -77,18 +76,14 @@ int path_mkdirs(const char *_path);
 char *path_getcwd(char *buf, size_t size);
 char *path_normcase(char path[]);
 char *path_normpath(char path[], size_t size);
-int path_splitdrv(char buf_d[], size_t bdsize, char buf_p[], size_t bpsize,
-                  const char *_path);
+int path_splitdrv(char buf_d[], size_t bdsize, char buf_p[], size_t bpsize, const char *_path);
 int path_joinpath(char buf[], size_t bfsize, int n, const char *_path, ...);
-int path_splitpath(char buf_h[], size_t bhsize, char buf_t[], size_t btsize,
-                   const char *_path);
+int path_splitpath(char buf_h[], size_t bhsize, char buf_t[], size_t btsize, const char *_path);
 char *path_dirname(char buf_dir[], size_t bfsize, const char *_path);
 char *path_basename(char buf_base[], size_t bfsize, const char *_path);
-int path_relpath(char buf[], size_t bfsize, const char *_path,
-                 const char *start);
+int path_relpath(char buf[], size_t bfsize, const char *_path, const char *start);
 int path_abspath(char buf[], size_t bfsize, const char *_path);
-int path_splitext(char buf_h[], size_t bhsize, char buf_e[], size_t besize,
-                  const char *_path, int extsep);
+int path_splitext(char buf_h[], size_t bhsize, char buf_e[], size_t besize, const char *_path, int extsep);
 int path_prunepath(char buf[], size_t bfsize, const char *_path);
 
 #endif // __OSPATH_H__

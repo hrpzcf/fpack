@@ -176,8 +176,7 @@ int path_delscan(scanner_t *scanlst) {
 // 参数dir_path为目录路径
 // 参数p_type为要收集的路径类型，可用值：PTYPE_DIR为目录，PTYPE_FILE为文件，PTYPE_BOTH则两者兼顾
 // 参数subdirs控制是否搜索子目录
-int path_scanpath(const char *dir_path, int ftype, int subdirs,
-                  scanner_t **const pp_scanner) {
+int path_scanpath(const char *dir_path, int ftype, int subdirs, scanner_t **const pp_scanner) {
     size_t len_dpath, len_bytes_malloc;
     scanner_t *tmp_p_scanlst; // 仅为了让Visual Studio不显示警告
     char *buf_full_path = NULL;
@@ -200,30 +199,22 @@ int path_scanpath(const char *dir_path, int ftype, int subdirs,
         return RESULT_FAILURE;
     }
     strcpy(buffer_find_path, dir_path);
-    if (path_joinpath(buffer_find_path, PATH_MSIZE, 2, buffer_find_path,
-                      OSP_AFS))
+    if (path_joinpath(buffer_find_path, PATH_MSIZE, 2, buffer_find_path, OSP_AFS))
         return RESULT_FAILURE;
     WIN32_FIND_DATAA find_paths;
     HANDLE hfind;
-    if (INVALID_HANDLE_VALUE ==
-        (hfind = FindFirstFileA(buffer_find_path, &find_paths))) {
+    if (INVALID_HANDLE_VALUE == (hfind = FindFirstFileA(buffer_find_path, &find_paths))) {
         return_code = RESULT_FAILURE;
         ospath_stat(STATUS_COMMAND_FAIL);
         goto close_and_return;
     }
     // 直接FindNextFileA仍然可以获得FindFirstFileA的结果
     while (0 != FindNextFileA(hfind, &find_paths)) {
-        if (strcmp(find_paths.cFileName, PATH_CDIRS) == 0 ||
-            strcmp(find_paths.cFileName, PATH_PDIRS) == 0 ||
-            strcmp(find_paths.cFileName, EXCLUDE_RECS) == 0 ||
-            strcmp(find_paths.cFileName, EXCLUDE_SVIS) == 0)
+        if (strcmp(find_paths.cFileName, PATH_CDIRS) == 0 || strcmp(find_paths.cFileName, PATH_PDIRS) == 0 || strcmp(find_paths.cFileName, EXCLUDE_RECS) == 0 || strcmp(find_paths.cFileName, EXCLUDE_SVIS) == 0)
             continue;
         if ((*pp_scanner)->count >= (*pp_scanner)->blocks) {
             // 用sizeof(*pp_scanner)得不到原对象已分配内存大小
-            tmp_p_scanlst = realloc(
-                *pp_scanner,
-                sizeof(scanner_t) +
-                    sizeof(char *) * ((*pp_scanner)->blocks + RALLOC_NUM));
+            tmp_p_scanlst = realloc(*pp_scanner, sizeof(scanner_t) + sizeof(char *) * ((*pp_scanner)->blocks + RALLOC_NUM));
             if (NULL == tmp_p_scanlst) {
                 return_code = RESULT_FAILURE;
                 ospath_stat(STATUS_MEMORY_ERROR);
@@ -240,8 +231,7 @@ int path_scanpath(const char *dir_path, int ftype, int subdirs,
             ospath_stat(STATUS_MEMORY_ERROR);
             goto close_and_return;
         }
-        if (path_joinpath(buf_full_path, len_bytes_malloc, 2, dir_path,
-                          find_paths.cFileName)) {
+        if (path_joinpath(buf_full_path, len_bytes_malloc, 2, dir_path, find_paths.cFileName)) {
             free(buf_full_path);
             continue;
         }
@@ -253,8 +243,7 @@ int path_scanpath(const char *dir_path, int ftype, int subdirs,
             if (ftype & FTYPE_BOTH || ftype & FTYPE_DIR)
                 (*pp_scanner)->paths[(*pp_scanner)->count++] = buf_full_path;
             if (subdirs)
-                return_code =
-                    path_scanpath(buf_full_path, ftype, subdirs, pp_scanner);
+                return_code = path_scanpath(buf_full_path, ftype, subdirs, pp_scanner);
             if (!(ftype & FTYPE_BOTH) && !(ftype & FTYPE_DIR))
                 if (NULL != buf_full_path)
                     free(buf_full_path), buf_full_path = NULL;
@@ -279,8 +268,7 @@ close_and_return:
 // 参数dir_path为目录路径
 // 参数p_type为要收集的路径类型，可用值：PTYPE_DIR为目录，PTYPE_FILE为文件，PTYPE_BOTH则两者兼顾
 // 参数subdirs控制是否搜索子目录
-int path_scanpath(const char *dir_path, int ftype, int subdirs,
-                  scanner_t **const pp_scanner) {
+int path_scanpath(const char *dir_path, int ftype, int subdirs, scanner_t **const pp_scanner) {
     size_t len_dpath, len_bytes_malloc;
     char *buf_full_path = NULL;
     int return_code = RESULT_SUCCESS;
@@ -305,17 +293,11 @@ int path_scanpath(const char *dir_path, int ftype, int subdirs,
         goto close_and_return;
     }
     while (NULL != (p_dent = readdir(dopened))) {
-        if (strcmp(p_dent->d_name, PATH_CDIRS) == 0 ||
-            strcmp(p_dent->d_name, PATH_PDIRS) == 0 ||
-            strcmp(p_dent->d_name, EXCLUDE_RECS) == 0 ||
-            strcmp(p_dent->d_name, EXCLUDE_SVIS) == 0)
+        if (strcmp(p_dent->d_name, PATH_CDIRS) == 0 || strcmp(p_dent->d_name, PATH_PDIRS) == 0 || strcmp(p_dent->d_name, EXCLUDE_RECS) == 0 || strcmp(p_dent->d_name, EXCLUDE_SVIS) == 0)
             continue;
         if ((*pp_scanner)->count >= (*pp_scanner)->blocks) {
             // 用sizeof(*pp_scanner)得不到原对象已分配内存大小
-            *pp_scanner = realloc(*pp_scanner,
-                                  sizeof(scanner_t) +
-                                      sizeof(char *) *
-                                          ((*pp_scanner)->blocks + RALLOC_NUM));
+            *pp_scanner = realloc(*pp_scanner, sizeof(scanner_t) + sizeof(char *) * ((*pp_scanner)->blocks + RALLOC_NUM));
             if (NULL == *pp_scanner) {
                 return_code = RESULT_FAILURE;
                 ospath_stat(STATUS_MEMORY_ERROR);
@@ -332,8 +314,7 @@ int path_scanpath(const char *dir_path, int ftype, int subdirs,
             ospath_stat(STATUS_MEMORY_ERROR);
             goto close_and_return;
         }
-        if (path_joinpath(buf_full_path, len_bytes_malloc, 2, dir_path,
-                          p_dent->d_name)) {
+        if (path_joinpath(buf_full_path, len_bytes_malloc, 2, dir_path, p_dent->d_name)) {
             free(buf_full_path);
             continue;
         }
@@ -347,8 +328,7 @@ int path_scanpath(const char *dir_path, int ftype, int subdirs,
             if (ftype & FTYPE_BOTH || ftype & FTYPE_DIR)
                 (*pp_scanner)->paths[(*pp_scanner)->count++] = buf_full_path;
             if (subdirs)
-                return_code =
-                    path_scanpath(buf_full_path, ftype, subdirs, pp_scanner);
+                return_code = path_scanpath(buf_full_path, ftype, subdirs, pp_scanner);
             if (ftype != FTYPE_BOTH && ftype != FTYPE_DIR)
                 if (buf_full_path)
                     free(buf_full_path), buf_full_path = NULL;
@@ -444,8 +424,7 @@ char *path_normpath(char path[], size_t size) {
         ospath_stat(STATUS_PATH_TOO_LONG);
         return NULL;
     }
-    if ((p_len >= 4) &&
-        (!strncmp(path, PATH_UNCDS, 4) || !strncmp(path, PATH_UNCQS, 4)))
+    if ((p_len >= 4) && (!strncmp(path, PATH_UNCDS, 4) || !strncmp(path, PATH_UNCQS, 4)))
         return result_s;
     prefix = malloc(PATH_MSIZE);
     suffix = malloc(PATH_MSIZE);
@@ -537,8 +516,7 @@ clean_return:
 //
 //      路径不能同时包含驱动器号和共享点路径。
 // 成功返回0，失败返回1
-int path_splitdrv(char buf_d[], size_t bdsize, char buf_p[], size_t bpsize,
-                  const char *_path) {
+int path_splitdrv(char buf_d[], size_t bdsize, char buf_p[], size_t bpsize, const char *_path) {
     size_t p_len;
     char *sep3_index, *sep4_index;
     char tmp_path[PATH_MSIZE], cased[PATH_MSIZE];
@@ -559,9 +537,7 @@ int path_splitdrv(char buf_d[], size_t bdsize, char buf_p[], size_t bpsize,
             return RESULT_FAILURE;
         if (!strncmp(cased, PATH_NSEPS2, 2) && cased[2] != PATH_NSEP) {
             sep3_index = strchr(cased + 2, PATH_NSEP);
-            if (NULL == sep3_index ||
-                ((sep4_index = strchr(sep3_index + 1, PATH_NSEP)) ==
-                 sep3_index + 1)) {
+            if (NULL == sep3_index || ((sep4_index = strchr(sep3_index + 1, PATH_NSEP)) == sep3_index + 1)) {
                 if (NULL != buf_d) {
                     if (bdsize < 1) {
                         ospath_stat(STATUS_INSFC_BUFFER);
@@ -723,8 +699,7 @@ int path_joinpath(char buf[], size_t bfsize, int n, const char *_path, ...) {
         ospath_stat(STATUS_INSFC_BUFFER);
         goto clean_return;
     }
-    if (*res_pth && *res_pth != PATH_NSEP && *res_pth != PATH_ASEP &&
-        *res_drv && res_drv[strlen(res_drv) - 1] != PATH_COLON) {
+    if (*res_pth && *res_pth != PATH_NSEP && *res_pth != PATH_ASEP && *res_drv && res_drv[strlen(res_drv) - 1] != PATH_COLON) {
         sprintf(buf, "%s%s%s", res_drv, PATH_NSEPS, res_pth);
         goto clean_return;
     }
@@ -743,8 +718,7 @@ clean_return:
 
 // 将路径按最后一个路径分隔符(斜杠)分割成两部分
 // 成功返回0，失败返回1
-int path_splitpath(char buf_h[], size_t bhsize, char buf_t[], size_t btsize,
-                   const char *_path) {
+int path_splitpath(char buf_h[], size_t bhsize, char buf_t[], size_t btsize, const char *_path) {
     int index, return_code = RESULT_SUCCESS;
     size_t p_len, last_sep_plus1;
     char *ah_rs = NULL; // 右边第一个路径分隔符以左的字符串
@@ -762,8 +736,7 @@ int path_splitpath(char buf_h[], size_t bhsize, char buf_t[], size_t btsize,
         return RESULT_FAILURE;
     p_len = last_sep_plus1 = strlen(p_pth);
     // last_sep_plus1:去除驱动器号后的路径的最后一个斜杠下标+1位置
-    while (last_sep_plus1 && p_pth[last_sep_plus1 - 1] != PATH_ASEP &&
-           p_pth[last_sep_plus1 - 1] != PATH_NSEP)
+    while (last_sep_plus1 && p_pth[last_sep_plus1 - 1] != PATH_ASEP && p_pth[last_sep_plus1 - 1] != PATH_NSEP)
         --last_sep_plus1;
     if (NULL != buf_t) {
         if (btsize <= p_len - last_sep_plus1) {
@@ -843,8 +816,7 @@ char *path_basename(char buf_base[], size_t bfsize, const char *_path) {
 // 功能：生成相对路径
 // 此相对路径是_path相对于start的路径
 // 成功返回0，失败返回1
-int path_relpath(char buf[], size_t size, const char *_path,
-                 const char *start) {
+int path_relpath(char buf[], size_t size, const char *_path, const char *start) {
     int ret_status = RESULT_FAILURE;
     int req_size = 0; // 结果字符数，size要大于此数才能装下结果
     // cnt_p及cnt_s：以斜杠分割后的字符串数量；cnt_min：两者中的较小值
@@ -1042,9 +1014,7 @@ char *path_normpath(char path[], size_t size) {
     while (token_spl) {
         if (strcmp(token_spl, PATH_CDIRS) == 0)
             goto next;
-        if (strcmp(token_spl, PATH_PDIRS) != 0 ||
-            (!*initial_slashes && index == 0) ||
-            (index > 0 && strcmp(splited[index - 1], PATH_PDIRS) == 0))
+        if (strcmp(token_spl, PATH_PDIRS) != 0 || (!*initial_slashes && index == 0) || (index > 0 && strcmp(splited[index - 1], PATH_PDIRS) == 0))
             splited[index++] = token_spl;
         else if (index > 0)
             --index;
@@ -1083,8 +1053,7 @@ char *path_normpath(char path[], size_t size) {
 // 将路径分割为驱动器号和路径
 // 在posix平台上，驱动器号总是空字符串
 // 成功返回0，失败返回1
-int path_splitdrv(char buf_d[], size_t bdsize, char buf_p[], size_t bpsize,
-                  const char *_path) {
+int path_splitdrv(char buf_d[], size_t bdsize, char buf_p[], size_t bpsize, const char *_path) {
     char tmp_path[PATH_MSIZE];
     ospath_stat(STATUS_EXEC_SUCCESS);
     if (!_path) {
@@ -1170,8 +1139,7 @@ int path_joinpath(char buf[], size_t bfsize, int n, const char *_path, ...) {
 
 // 将路径按最后一个路径分隔符(斜杠)分割为两部分
 // 成功返回0，失败返回1
-int path_splitpath(char buf_h[], size_t bhsize, char buf_t[], size_t btsize,
-                   const char *_path) {
+int path_splitpath(char buf_h[], size_t bhsize, char buf_t[], size_t btsize, const char *_path) {
     size_t p_len, last_sep_plus1;
     char head[PATH_MSIZE];
     char tmp_path[PATH_MSIZE];
@@ -1245,8 +1213,7 @@ char *path_basename(char buf_base[], size_t bfsize, const char *_path) {
 // 功能：生成相对路径
 // 生成的相对路径是_path相对于start的路径
 // 成功返回0，失败返回1
-int path_relpath(char buf[], size_t bfsize, const char *_path,
-                 const char *start) {
+int path_relpath(char buf[], size_t bfsize, const char *_path, const char *start) {
     int return_code = RESULT_SUCCESS;
     int req_size = 0; // 结果字符数，size要大于此数才能装下结果
     // cnt_p及cnt_s：以斜杠分割后的字符串数量；cnt_min：两者中的较小值
@@ -1410,8 +1377,7 @@ int path_abspath(char buf[], size_t bfsize, const char *_path) {
 
 // 功能：将路径分割为[路径，扩展名]，扩展名包括'.'号
 // 成功返回0，失败返回1
-int path_splitext(char buf_h[], size_t bhsize, char buf_e[], size_t besize,
-                  const char *_path, int extsep) {
+int path_splitext(char buf_h[], size_t bhsize, char buf_e[], size_t besize, const char *_path, int extsep) {
     size_t dot_index_n;
     size_t p_len;
     char tmp_path[PATH_MSIZE];

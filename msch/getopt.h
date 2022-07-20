@@ -115,10 +115,8 @@ static char EMSG[] = "";
 #define EMSG ""
 #endif
 
-static int getopt_internal(int, char *const *, const char *,
-                           const struct option *, int *, int);
-static int parse_long_options(char *const *, const char *,
-                              const struct option *, int *, int);
+static int getopt_internal(int, char *const *, const char *, const struct option *, int *, int);
+static int parse_long_options(char *const *, const char *, const struct option *, int *, int);
 static int gcd(int, int);
 static void permute_args(int, int, int, char *const *);
 
@@ -171,8 +169,7 @@ static int gcd(int a, int b) {
  * from nonopt_end to opt_end (keeping the same order of arguments
  * in each block).
  */
-static void permute_args(int panonopt_start, int panonopt_end, int opt_end,
-                         char *const *nargv) {
+static void permute_args(int panonopt_start, int panonopt_end, int opt_end, char *const *nargv) {
     int cstart, cyclelen, i, j, ncycle, nnonopts, nopts, pos;
     char *swap;
 
@@ -274,17 +271,12 @@ enum /* permitted values for its `has_arg' field...	*/
  *	Parse long options in argc/argv argument vector.
  * Returns -1 if short_too is set and the option does not match long_options.
  */
-static int parse_long_options(char *const *nargv, const char *options,
-                              const struct option *long_options, int *idx,
-                              int short_too) {
+static int parse_long_options(char *const *nargv, const char *options, const struct option *long_options, int *idx, int short_too) {
     char *current_argv, *has_equal;
     size_t current_argv_len;
     int i, ambiguous, match;
 
-#define IDENTICAL_INTERPRETATION(_x, _y) \
-    (long_options[(_x)].has_arg == long_options[(_y)].has_arg && \
-     long_options[(_x)].flag == long_options[(_y)].flag && \
-     long_options[(_x)].val == long_options[(_y)].val)
+#define IDENTICAL_INTERPRETATION(_x, _y) (long_options[(_x)].has_arg == long_options[(_y)].has_arg && long_options[(_x)].flag == long_options[(_y)].flag && long_options[(_x)].val == long_options[(_y)].val)
 
     current_argv = place;
     match = -1;
@@ -342,8 +334,7 @@ static int parse_long_options(char *const *nargv, const char *options,
                 optopt = 0;
             return (BADARG);
         }
-        if (long_options[match].has_arg == required_argument ||
-            long_options[match].has_arg == optional_argument) {
+        if (long_options[match].has_arg == required_argument || long_options[match].has_arg == optional_argument) {
             if (has_equal)
                 optarg = has_equal;
             else if (long_options[match].has_arg == required_argument) {
@@ -353,8 +344,7 @@ static int parse_long_options(char *const *nargv, const char *options,
                 optarg = nargv[optind++];
             }
         }
-        if ((long_options[match].has_arg == required_argument) &&
-            (optarg == NULL)) {
+        if ((long_options[match].has_arg == required_argument) && (optarg == NULL)) {
             /*
              * Missing argument; leading ':' indicates no error
              * should be generated.
@@ -395,9 +385,7 @@ static int parse_long_options(char *const *nargv, const char *options,
  * getopt_internal --
  *	Parse argc/argv argument vector.  Called by user level routines.
  */
-static int getopt_internal(int nargc, char *const *nargv, const char *options,
-                           const struct option *long_options, int *idx,
-                           int flags) {
+static int getopt_internal(int nargc, char *const *nargv, const char *options, const struct option *long_options, int *idx, int flags) {
     char *oli; /* option letter list index */
     int optchar, short_too;
     static int posixly_correct = -1;
@@ -450,8 +438,7 @@ start:
             nonopt_start = nonopt_end = -1;
             return (-1);
         }
-        if (*(place = nargv[optind]) != '-' ||
-            (place[1] == '\0' && strchr(options, '-') == NULL)) {
+        if (*(place = nargv[optind]) != '-' || (place[1] == '\0' && strchr(options, '-') == NULL)) {
             place = EMSG; /* found non-option */
             if (flags & FLAG_ALLARGS) {
                 /*
@@ -508,25 +495,21 @@ start:
      *  2) the arg is not just "-"
      *  3) either the arg starts with -- we are getopt_long_only()
      */
-    if (long_options != NULL && place != nargv[optind] &&
-        (*place == '-' || (flags & FLAG_LONGONLY))) {
+    if (long_options != NULL && place != nargv[optind] && (*place == '-' || (flags & FLAG_LONGONLY))) {
         short_too = 0;
         if (*place == '-')
             place++; /* --foo long option */
         else if (*place != ':' && strchr(options, *place) != NULL)
             short_too = 1; /* could be short option too */
 
-        optchar =
-            parse_long_options(nargv, options, long_options, idx, short_too);
+        optchar = parse_long_options(nargv, options, long_options, idx, short_too);
         if (optchar != -1) {
             place = EMSG;
             return (optchar);
         }
     }
 
-    if ((optchar = (int)*place++) == (int)':' ||
-        (optchar == (int)'-' && *place != '\0') ||
-        (oli = (char *)strchr(options, optchar)) == NULL) {
+    if ((optchar = (int)*place++) == (int)':' || (optchar == (int)'-' && *place != '\0') || (oli = (char *)strchr(options, optchar)) == NULL) {
         /*
          * If the user specified "-" and  '-' isn't listed in
          * options, return -1 (non-option) as per POSIX.
@@ -585,21 +568,13 @@ start:
  * getopt_long --
  *	Parse argc/argv argument vector.
  */
-int getopt_long(int nargc, char *const *nargv, const char *options,
-                const struct option *long_options, int *idx) {
-    return (getopt_internal(nargc, nargv, options, long_options, idx,
-                            FLAG_PERMUTE));
-}
+int getopt_long(int nargc, char *const *nargv, const char *options, const struct option *long_options, int *idx) { return (getopt_internal(nargc, nargv, options, long_options, idx, FLAG_PERMUTE)); }
 
 /*
  * getopt_long_only --
  *	Parse argc/argv argument vector.
  */
-int getopt_long_only(int nargc, char *const *nargv, const char *options,
-                     const struct option *long_options, int *idx) {
-    return (getopt_internal(nargc, nargv, options, long_options, idx,
-                            FLAG_PERMUTE | FLAG_LONGONLY));
-}
+int getopt_long_only(int nargc, char *const *nargv, const char *options, const struct option *long_options, int *idx) { return (getopt_internal(nargc, nargv, options, long_options, idx, FLAG_PERMUTE | FLAG_LONGONLY)); }
 
 // extern int getopt_long(int nargc, char * const *nargv, const char *options,
 //    const struct option *long_options, int *idx);

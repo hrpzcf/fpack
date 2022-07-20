@@ -24,11 +24,9 @@ int str_a2u(char buf[], int bfsize, char *ansiSTR) {
     if (length <= 0)
         return 0;
     if (NULL == buf || bfsize <= 0)
-        length = WideCharToMultiByte(CP_UTF8, 0, new_wchars, -1, NULL, 0, NULL,
-                                     NULL);
+        length = WideCharToMultiByte(CP_UTF8, 0, new_wchars, -1, NULL, 0, NULL, NULL);
     else
-        length = WideCharToMultiByte(CP_UTF8, 0, new_wchars, -1, buf, bfsize,
-                                     NULL, NULL);
+        length = WideCharToMultiByte(CP_UTF8, 0, new_wchars, -1, buf, bfsize, NULL, NULL);
     if (NULL != ansi_tmp)
         free(ansi_tmp);
     if (NULL != new_wchars)
@@ -59,11 +57,9 @@ int str_u2a(char buf[], int bfsize, char *utf8STR) {
     if (length <= 0)
         return 0;
     if (NULL == buf || bfsize <= 0)
-        length =
-            WideCharToMultiByte(CP_ACP, 0, new_wchars, -1, NULL, 0, NULL, NULL);
+        length = WideCharToMultiByte(CP_ACP, 0, new_wchars, -1, NULL, 0, NULL, NULL);
     else
-        length = WideCharToMultiByte(CP_ACP, 0, new_wchars, -1, buf, bfsize,
-                                     NULL, NULL);
+        length = WideCharToMultiByte(CP_ACP, 0, new_wchars, -1, buf, bfsize, NULL, NULL);
     if (NULL != utf8_tmp)
         free(utf8_tmp);
     if (NULL != new_wchars)
