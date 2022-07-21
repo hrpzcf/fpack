@@ -137,7 +137,7 @@ static const head_t df_head = {
 bool is_fake_jpeg(const char *fake_jpeg_path);
 fpack_t *fpack_make(const char *file_path, bool overwrite);
 fpack_t *fpack_open(const char *file_path);
-void fpack_close(fpack_t *st_pfile);
+void fpack_close(fpack_t *fpack);
 fpack_t *fpack_pack(const char *topack, bool sd, fpack_t *fpack, bool add);
 fpack_t *fpack_extract(const char *name, const char *save_path, int overwrite, fpack_t *fpack);
 fpack_t *fpack_info(const char *fp_path);

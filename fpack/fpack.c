@@ -165,23 +165,23 @@ void fpack_close(fpack_t *fpack) {
 }
 
 // 创建新<.fp>文件
-fpack_t *fpack_make(const char *pf_path, bool overwrite) {
+fpack_t *fpack_make(const char *fp_path, bool overwrite) {
     FILE *pfhd_pack;           // 二进制文件流指针
     fpack_t *fpack;            // <.fp>文件信息结构体
     char buf_path[PATH_MSIZE]; // 绝对路径及父目录缓冲
-    char *cp_pf_path;          // 拷贝路径用于结构体
-    if (path_abspath(buf_path, PATH_MSIZE, pf_path)) {
-        printf(FPACK_ERROR "无法获取主文件绝对路径：%s\n", pf_path);
+    char *cp_fp_path;          // 拷贝路径用于结构体
+    if (path_abspath(buf_path, PATH_MSIZE, fp_path)) {
+        printf(FPACK_ERROR "无法获取主文件绝对路径：%s\n", fp_path);
         exit(EXIT_CODE_FAILURE);
     }
     printf(FPACK_INFO "创建主文件：%s\n", buf_path);
-    cp_pf_path = malloc(strlen(buf_path) + 1ULL);
-    if (!cp_pf_path) {
+    cp_fp_path = malloc(strlen(buf_path) + 1ULL);
+    if (!cp_fp_path) {
         PRINT_ERROR_AND_ABORT("为主文件路径数组分配内存失败");
     }
-    strcpy(cp_pf_path, buf_path);
-    if (path_exists(cp_pf_path)) {
-        if (path_isdir(cp_pf_path)) {
+    strcpy(cp_fp_path, buf_path);
+    if (path_exists(cp_fp_path)) {
+        if (path_isdir(cp_fp_path)) {
             printf(FPACK_ERROR "此位置已存在同名目录\n");
             exit(EXIT_CODE_FAILURE);
         } else if (path_last_state()) {
@@ -208,13 +208,13 @@ fpack_t *fpack_make(const char *pf_path, bool overwrite) {
         printf(FPACK_ERROR "父目录已被文件占用，无法创建主文件\n");
         exit(EXIT_CODE_FAILURE);
     }
-    if (!(pfhd_pack = fopen_fpack(cp_pf_path, "wb"))) {
+    if (!(pfhd_pack = fopen_fpack(cp_fp_path, "wb"))) {
         printf(FPACK_ERROR "主文件创建失败\n");
         exit(EXIT_CODE_FAILURE);
     }
     if (fwrite(&df_head, sizeof(df_head), 1, pfhd_pack) != 1) {
         fclose(pfhd_pack);
-        remove(pf_path);
+        remove(fp_path);
         PRINT_ERROR_AND_ABORT("写入<.fp>文件头失败");
     }
     // 此时文件指针已经在文件末尾
@@ -223,36 +223,36 @@ fpack_t *fpack_make(const char *pf_path, bool overwrite) {
         fpack->start = 0LL;
         fpack->subs = NULL;
         fpack->subn = 0LL;
-        fpack->fpath = cp_pf_path;
+        fpack->fpath = cp_fp_path;
         fpack->pfhd = pfhd_pack;
         return fpack;
     } else {
         fclose(pfhd_pack);
-        remove(pf_path);
+        remove(fp_path);
         PRINT_ERROR_AND_ABORT("为文件信息结构体分配内存失败");
     }
 }
 
 // 打开已存在的<.fp>文件
-fpack_t *fpack_open(const char *pf_path) {
+fpack_t *fpack_open(const char *fp_path) {
     fpack_t *fpack;            // <.fp>文件信息结构体
     head_t tmp_head;           // 临时<.fp>文件头
     info_t *bom_pfile;         // 子文件信息表
     FILE *pfhd_pack;           // 主文件二进制流
     char buf_path[PATH_MSIZE]; // 绝对路径及父目录缓冲
-    char *cp_pf_path;          // 拷贝路径用于结构体
+    char *cp_fp_path;          // 拷贝路径用于结构体
     int64_t subn = 0LL;        // 子文件信息表容量
-    if (path_abspath(buf_path, PATH_MSIZE, pf_path)) {
-        printf(FPACK_ERROR "无法获取主文件绝对路径：%s\n", pf_path);
+    if (path_abspath(buf_path, PATH_MSIZE, fp_path)) {
+        printf(FPACK_ERROR "无法获取主文件绝对路径：%s\n", fp_path);
         exit(EXIT_CODE_FAILURE);
     }
     printf(FPACK_INFO "打开主文件：%s\n", buf_path);
-    cp_pf_path = malloc(strlen(buf_path) + 1ULL);
-    if (!cp_pf_path) {
+    cp_fp_path = malloc(strlen(buf_path) + 1ULL);
+    if (!cp_fp_path) {
         PRINT_ERROR_AND_ABORT("为主文件文件名分配内存失败");
     }
-    strcpy(cp_pf_path, buf_path);
-    if (!path_isfile(cp_pf_path)) {
+    strcpy(cp_fp_path, buf_path);
+    if (!path_isfile(cp_fp_path)) {
         if (path_last_state()) {
             printf(FPACK_ERROR "获取主文件路径属性失败\n");
             exit(EXIT_CODE_FAILURE);
@@ -261,7 +261,7 @@ fpack_t *fpack_open(const char *pf_path) {
             exit(EXIT_CODE_FAILURE);
         }
     }
-    if (!(pfhd_pack = fopen_fpack(cp_pf_path, "r+b"))) {
+    if (!(pfhd_pack = fopen_fpack(cp_fp_path, "r+b"))) {
         printf(FPACK_ERROR "主文件打开失败\n");
         exit(EXIT_CODE_FAILURE);
     }
@@ -312,11 +312,11 @@ fpack_t *fpack_open(const char *pf_path) {
         fpack->start = 0LL;
         fpack->subs = bom_pfile;
         fpack->subn = subn;
-        fpack->fpath = cp_pf_path;
+        fpack->fpath = cp_fp_path;
         fpack->pfhd = pfhd_pack;
         return fpack;
     } else {
-        free(bom_pfile), free(cp_pf_path);
+        free(bom_pfile), free(cp_fp_path);
         PRINT_ERROR_AND_ABORT("为<.fp>文件信息结构体分配内存失败");
     }
 }
@@ -796,20 +796,20 @@ fpack_t *fpack_fakej_make(const char *fp_path, const char *jpeg_path, bool overw
     int64_t jpeg_netsize;      // JPEG文件净大小
     int64_t fake_jpeg_size;    // JPEG文件的总大小
     buf_t *buf_frw;            // 文件读写缓冲区
-    char *cp_pf_path;          // 复制的文件路径
+    char *cp_fp_path;          // 复制的文件路径
     char buf_path[PATH_MSIZE]; // 绝对路径及父目录缓冲
     if (path_abspath(buf_path, PATH_MSIZE, fp_path)) {
         printf(FPACK_ERROR "无法获取主文件绝对路径：%s\n", fp_path);
         exit(EXIT_CODE_FAILURE);
     }
     printf(FPACK_INFO "创建主文件：%s\n", buf_path);
-    cp_pf_path = malloc(strlen(buf_path) + 1ULL);
-    if (!cp_pf_path) {
+    cp_fp_path = malloc(strlen(buf_path) + 1ULL);
+    if (!cp_fp_path) {
         PRINT_ERROR_AND_ABORT("为主文件路径数组分配内存失败");
     }
-    strcpy(cp_pf_path, buf_path);
-    if (path_exists(cp_pf_path)) {
-        if (path_isdir(cp_pf_path)) {
+    strcpy(cp_fp_path, buf_path);
+    if (path_exists(cp_fp_path)) {
+        if (path_isdir(cp_fp_path)) {
             printf(FPACK_ERROR "此位置已存在同名目录\n");
             exit(EXIT_CODE_FAILURE);
         } else if (path_last_state()) {
@@ -840,27 +840,27 @@ fpack_t *fpack_fakej_make(const char *fp_path, const char *jpeg_path, bool overw
         printf(FPACK_ERROR "指定的图像路径不是一个文件或不存在：%s\n", jpeg_path);
         exit(EXIT_CODE_FAILURE);
     }
-    if (!(pfhd_pack = fopen_fpack(cp_pf_path, "wb"))) {
+    if (!(pfhd_pack = fopen_fpack(cp_fp_path, "wb"))) {
         PRINT_ERROR_AND_ABORT("主文件创建失败");
     }
     if (!(fhd_jpeg = fopen_fpack(jpeg_path, "rb"))) {
-        fclose(pfhd_pack), remove(cp_pf_path);
+        fclose(pfhd_pack), remove(cp_fp_path);
         PRINT_ERROR_AND_ABORT("打开JPEG图像文件失败");
     }
     if (fseek_fpack(fhd_jpeg, 0LL, SEEK_END)) {
         fclose(fhd_jpeg);
-        fclose(pfhd_pack), remove(cp_pf_path);
+        fclose(pfhd_pack), remove(cp_fp_path);
         PRINT_ERROR_AND_ABORT("移动JPEG文件指针失败");
     }
     if ((fake_jpeg_size = ftell_fpack(fhd_jpeg)) < 0LL) {
         fclose(fhd_jpeg);
-        fclose(pfhd_pack), remove(cp_pf_path);
+        fclose(pfhd_pack), remove(cp_fp_path);
         PRINT_ERROR_AND_ABORT("读取JPEG文件大小失败");
     }
     if (buf_frw = malloc(sizeof(buf_t) + L_BUF_SIZE)) {
         buf_frw->size = L_BUF_SIZE;
     } else {
-        fclose(pfhd_pack), remove(cp_pf_path);
+        fclose(pfhd_pack), remove(cp_fp_path);
         PRINT_ERROR_AND_ABORT("为文件读写缓冲区分配内存失败");
     }
     jpeg_netsize = realsizeofj(fhd_jpeg, fake_jpeg_size, &buf_frw);
@@ -874,25 +874,25 @@ fpack_t *fpack_fakej_make(const char *fp_path, const char *jpeg_path, bool overw
     if (fake_jpeg_size > U_BUF_SIZE) {
         if (!copier_sub2pack(fhd_jpeg, pfhd_pack, &buf_frw)) {
             fclose(fhd_jpeg);
-            fclose(pfhd_pack), remove(cp_pf_path);
+            fclose(pfhd_pack), remove(cp_fp_path);
             PRINT_ERROR_AND_ABORT("复制JPEG文件失败");
         }
     } else {
         if (fake_jpeg_size > buf_frw->size) {
             if (!expand_buf(&buf_frw, fake_jpeg_size)) {
                 fclose(fhd_jpeg);
-                fclose(pfhd_pack), remove(cp_pf_path);
+                fclose(pfhd_pack), remove(cp_fp_path);
                 PRINT_ERROR_AND_ABORT("为文件读写缓冲区扩充内存失败");
             }
         }
         if (fread(buf_frw->fdata, fake_jpeg_size, 1, fhd_jpeg) != 1) {
             fclose(fhd_jpeg);
-            fclose(pfhd_pack), remove(cp_pf_path);
+            fclose(pfhd_pack), remove(cp_fp_path);
             PRINT_ERROR_AND_ABORT("读取JPEG文件失败");
         }
         if (fwrite(buf_frw->fdata, fake_jpeg_size, 1, pfhd_pack) != 1) {
             fclose(fhd_jpeg);
-            fclose(pfhd_pack), remove(cp_pf_path);
+            fclose(pfhd_pack), remove(cp_fp_path);
             PRINT_ERROR_AND_ABORT("复制JPEG至主文件失败");
         }
     }
@@ -902,7 +902,7 @@ fpack_t *fpack_fakej_make(const char *fp_path, const char *jpeg_path, bool overw
     }
     if (fwrite(&df_head, sizeof(head_t), 1, pfhd_pack) != 1) {
         fclose(fhd_jpeg);
-        fclose(pfhd_pack), remove(cp_pf_path);
+        fclose(pfhd_pack), remove(cp_fp_path);
         PRINT_ERROR_AND_ABORT("写入<.fp>文件头信息失败");
     }
     // 最后一次写入后主文件的文件指针已移至末尾不需再移
@@ -911,13 +911,13 @@ fpack_t *fpack_fakej_make(const char *fp_path, const char *jpeg_path, bool overw
         fpack->start = jpeg_netsize;
         fpack->subs = NULL;
         fpack->subn = 0LL;
-        fpack->fpath = cp_pf_path;
+        fpack->fpath = cp_fp_path;
         fpack->pfhd = pfhd_pack;
         if (buf_frw)
             free(buf_frw);
         return fpack;
     } else {
-        fclose(pfhd_pack), remove(cp_pf_path);
+        fclose(pfhd_pack), remove(cp_fp_path);
         PRINT_ERROR_AND_ABORT("为主文件信息结构体分配内存失败");
     }
 }
@@ -929,7 +929,7 @@ fpack_t *fpack_fakej_open(const char *fake_jpeg_path) {
     info_t *bom_pfile;         // 子文件信息表
     FILE *pfhd_pack;           // 主文件二进制流
     char buf_path[PATH_MSIZE]; // 绝对路径及父目录缓冲
-    char *cp_pf_path;          // 拷贝路径用于结构体
+    char *cp_fp_path;          // 拷贝路径用于结构体
     int64_t subn = 0LL;        // 子文件信息表容量
     buf_t *buf_frw;            // 文件读写缓冲区
     int64_t fake_jpeg_size;    // 伪JPEG文件的总大小
@@ -939,12 +939,12 @@ fpack_t *fpack_fakej_open(const char *fake_jpeg_path) {
         exit(EXIT_CODE_FAILURE);
     }
     printf(FPACK_INFO "打开主文件：%s\n", buf_path);
-    cp_pf_path = malloc(strlen(buf_path) + 1ULL);
-    if (!cp_pf_path) {
+    cp_fp_path = malloc(strlen(buf_path) + 1ULL);
+    if (!cp_fp_path) {
         PRINT_ERROR_AND_ABORT("为伪图文件文件名分配内存失败");
     }
-    strcpy(cp_pf_path, buf_path);
-    if (!path_isfile(cp_pf_path)) {
+    strcpy(cp_fp_path, buf_path);
+    if (!path_isfile(cp_fp_path)) {
         if (path_last_state()) {
             printf(FPACK_ERROR "获取主文件路径属性失败\n");
             exit(EXIT_CODE_FAILURE);
@@ -958,7 +958,7 @@ fpack_t *fpack_fakej_open(const char *fake_jpeg_path) {
     } else {
         PRINT_ERROR_AND_ABORT("为文件读写缓冲区分配内存失败");
     }
-    if (!(pfhd_pack = fopen_fpack(cp_pf_path, "r+b"))) {
+    if (!(pfhd_pack = fopen_fpack(cp_fp_path, "r+b"))) {
         printf(FPACK_ERROR "主文件打开失败\n");
         exit(EXIT_CODE_FAILURE);
     }
@@ -1025,11 +1025,11 @@ fpack_t *fpack_fakej_open(const char *fake_jpeg_path) {
         fpack->start = jpeg_netsize;
         fpack->subs = bom_pfile;
         fpack->subn = subn;
-        fpack->fpath = cp_pf_path;
+        fpack->fpath = cp_fp_path;
         fpack->pfhd = pfhd_pack;
         return fpack;
     } else {
-        free(bom_pfile), free(cp_pf_path);
+        free(bom_pfile), free(cp_fp_path);
         PRINT_ERROR_AND_ABORT("为<.fp>文件信息结构体分配内存失败");
     }
 }
