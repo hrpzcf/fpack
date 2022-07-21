@@ -67,4 +67,4 @@ int str_u2a(char buf[], int bfsize, char *utf8STR) {
     return length;
 }
 
-#endif /* END of _WIN32 */
+#endif // _WIN32

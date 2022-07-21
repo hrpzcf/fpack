@@ -155,6 +155,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\entry\info.h" />
     <ClInclude Include="..\fpack\fpack.h" />
     <ClInclude Include="..\ospath\ospath.h" />
   </ItemGroup>

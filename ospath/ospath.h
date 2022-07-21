@@ -1,5 +1,5 @@
-#ifndef __OSPATH_H__
-#define __OSPATH_H__
+#ifndef __OSPATH_H
+#define __OSPATH_H
 
 #ifdef _MSC_VER
 #ifndef _CRT_SECURE_NO_WARNINGS // 关闭MSC强制安全警告
@@ -86,4 +86,4 @@ int path_abspath(char buf[], size_t bfsize, const char *_path);
 int path_splitext(char buf_h[], size_t bhsize, char buf_e[], size_t besize, const char *_path, int extsep);
 int path_prunepath(char buf[], size_t bfsize, const char *_path);
 
-#endif // __OSPATH_H__
+#endif // __OSPATH_H

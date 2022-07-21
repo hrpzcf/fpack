@@ -1,5 +1,5 @@
-#ifndef __PACKFILE_H
-#define __PACKFILE_H
+#ifndef __FILEPACK_H
+#define __FILEPACK_H
 #include <limits.h>
 #include <stdbool.h>
 #include <stdint.h>
@@ -8,13 +8,13 @@
 
 #include "../ospath/ospath.h"
 
-#define PACK_VERSION "0.1.1"
+#define FPACK_VER "0.1.1"
 
-#define FILE_MAX   LLONG_MAX  // 文件最大字节数
-#define PM         PATH_MSIZE // 路径最大字节数
-#define PACK_INFO  "\33[32m[信息]\33[0m "
-#define PACK_WARN  "\33[33m[警告]\33[0m "
-#define PACK_ERROR "\33[31m[错误]\33[0m "
+#define FILE_MAX    LLONG_MAX  // 文件最大字节数
+#define PM          PATH_MSIZE // 路径最大字节数
+#define FPACK_INFO  "\33[32m[信息]\33[0m "
+#define FPACK_WARN  "\33[33m[警告]\33[0m "
+#define FPACK_ERROR "\33[31m[错误]\33[0m "
 
 #ifdef _WIN32
 #define fseek_fpack _fseeki64
@@ -25,21 +25,21 @@ int str_u2a(char buf[], int bfsize, char *utf8STR);
 #else // else posix
 #define fseek_fpack fseek
 #define ftell_fpack ftell
-#endif // end of _WIN32
+#endif // _WIN32
 #define fopen_fpack fopen
 
-// 区分不同平台上printf中的int64_t格式化占位符
+// 不同平台上printf中的int64_t格式化占位符
 #ifndef _WIN32
 #ifdef __x86_64
 // 64位linux平台的int64类型是(int long)
-#define INT64_SPECIFIER "ld"
+#define I64_SPECIFIER "ld"
 #else
 // 32位linux平台的int64类型是(int long long)
-#define INT64_SPECIFIER "lld"
+#define I64_SPECIFIER "lld"
 #endif // __x86_64
 #else
 // 32和64位windows平台上int64_t都是(int long long)
-#define INT64_SPECIFIER "lld"
+#define I64_SPECIFIER "lld"
 #endif // _WIN32
 
 #define EXIT_CODE_SUCCESS 0 // 成功退出状态码
@@ -64,7 +64,7 @@ typedef struct {
 #define JPEG_START   0xD8 // JPEG图像起始
 #define JPEG_END     0xD9 // JPEG图像结束
 #define JPEG_INVALID 0    // 无效的JPEG图像
-#define JPEG_ERRORS  -1   // 检查JPEG图像过程中出现了错误
+#define JPEG_ERROR   -1   // 检查JPEG图像过程中出现了错误
 
 // 文件头信息集合
 // 注意结构体成员的内存对齐
@@ -100,21 +100,21 @@ typedef struct {
     char *fpath;   // 文件的绝对路径
 } fpack_t;
 
-// 默认文件头信息结构体
+// 默认<.fp>文件头信息结构体
 static const head_t df_head = {
-    // 格式标识：\377pack file\0等16字节，余下字节皆为零
-    .id = {0xFF, 0x70, 0x61, 0x63, 0x6B, 0x20, 0x66, 0x69, 0x6C, 0x65},
     // 分别为：2位年份，主版本，次版本，修订版本
     .sp = {22, 1, 0, 6},
     // 预留的空字节用于可能增加的信息字段
     .emt = {0},
     // 主文件中包含的子文件总数，初始总数总是设置为零
     .count = 0LL,
+    // 格式标识：\377pack file\0等16字节，余下字节皆为零
+    .id = {0xFF, 0x70, 0x61, 0x63, 0x6B, 0x20, 0x66, 0x69, 0x6C, 0x65},
 };
 
 // 出错时打印调试信息及退出程序
 #define PRINT_ERROR_AND_ABORT(STR) \
-    fprintf(stderr, PACK_ERROR STR ": 源码 %s 第 %d 行，[ %s ]\n", path_basename(NULL, 0ULL, __FILE__), __LINE__, PACK_VERSION); \
+    fprintf(stderr, FPACK_ERROR STR ": 源码 %s 第 %d 行，[ %s ]\n", path_basename(NULL, 0ULL, __FILE__), __LINE__, FPACK_VER); \
     exit(EXIT_CODE_FAILURE)
 
 // 出错时判断是否关闭文件流并删除文件
@@ -130,18 +130,18 @@ static const head_t df_head = {
 #define EM_S (EM_N * sizeof(char))    // head的emt字段大小
 #define FC_S (sizeof(int64_t))        // head的count字段大小
 
-#define FCNT_O (ID_S + SP_S + EM_S)        // fcount字段在PACK文件中的偏移量
+#define FCNT_O (ID_S + SP_S + EM_S)        // fcount字段在<.fp>文件中的偏移量
 #define DATA_O (ID_S + SP_S + EM_S + FC_S) // 数据块起始偏移量
 #define FSNL_S (FS_S + NL_S)               // 结构体finfo_t中fsize和fnlen的类型大小之和
 
-bool is_fake_jpeg(const char *fakej_path);
+bool is_fake_jpeg(const char *fake_jpeg_path);
 fpack_t *fpack_make(const char *file_path, bool overwrite);
 fpack_t *fpack_open(const char *file_path);
 void fpack_close(fpack_t *st_pfile);
 fpack_t *fpack_pack(const char *topack, bool sd, fpack_t *fpack, bool add);
 fpack_t *fpack_extract(const char *name, const char *save_path, int overwrite, fpack_t *fpack);
-fpack_t *fpack_info(const char *pk_path);
-fpack_t *fpack_fakej_make(const char *pf_path, const char *jpeg_path, bool overwrite);
+fpack_t *fpack_info(const char *fp_path);
+fpack_t *fpack_fakej_make(const char *fp_path, const char *jpeg_path, bool overwrite);
 fpack_t *fpack_fakej_open(const char *fake_jpeg_path);
 
-#endif //__PACKFILE_H
+#endif //__FILEPACK_H

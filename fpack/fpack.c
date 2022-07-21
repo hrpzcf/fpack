@@ -96,10 +96,10 @@ static int64_t realsizeofj(FILE *p_jpeg, int64_t total, buf_t **buf_8bit) {
         return JPEG_INVALID;
     if ((*buf_8bit)->size < total)
         if (!expand_buf(buf_8bit, total))
-            return JPEG_ERRORS;
+            return JPEG_ERROR;
     rewind(p_jpeg);
     if (fread((*buf_8bit)->fdata, 1, total, p_jpeg) != total) {
-        return JPEG_ERRORS;
+        return JPEG_ERROR;
     }
     buf_u8 = (uint8_t *)(*buf_8bit)->fdata;
     if (!(buf_u8[0] == JPEG_SIG && buf_u8[1] == JPEG_START))
@@ -111,14 +111,14 @@ static int64_t realsizeofj(FILE *p_jpeg, int64_t total, buf_t **buf_8bit) {
 }
 
 // 判断是否是伪装的JPEG文件
-bool is_fake_jpeg(const char *fakej_path) {
+bool is_fake_jpeg(const char *fake_jpeg_path) {
     FILE *fhd_fake_jpeg;
     buf_t *buf_frw;
     int64_t fake_jpeg_size, jpeg_netsize;
     head_t head_tmp;
     static char buf_p[PATH_MSIZE];
     bool return_code = false;
-    if (path_abspath(buf_p, PATH_MSIZE, fakej_path))
+    if (path_abspath(buf_p, PATH_MSIZE, fake_jpeg_path))
         return return_code;
     fhd_fake_jpeg = fopen_fpack(buf_p, "rb");
     if (!fhd_fake_jpeg)
@@ -133,7 +133,7 @@ bool is_fake_jpeg(const char *fakej_path) {
         return false;
     }
     jpeg_netsize = realsizeofj(fhd_fake_jpeg, fake_jpeg_size, &buf_frw);
-    if (jpeg_netsize == JPEG_INVALID || jpeg_netsize == JPEG_ERRORS)
+    if (jpeg_netsize == JPEG_INVALID || jpeg_netsize == JPEG_ERROR)
         goto free_return;
     if (fake_jpeg_size - jpeg_netsize < sizeof(head_t)) {
         goto free_return;
@@ -164,17 +164,17 @@ void fpack_close(fpack_t *fpack) {
     }
 }
 
-// 创建新PACK文件
+// 创建新<.fp>文件
 fpack_t *fpack_make(const char *pf_path, bool overwrite) {
     FILE *pfhd_pack;           // 二进制文件流指针
-    fpack_t *fpack;            // PACK文件信息结构体
+    fpack_t *fpack;            // <.fp>文件信息结构体
     char buf_path[PATH_MSIZE]; // 绝对路径及父目录缓冲
     char *cp_pf_path;          // 拷贝路径用于结构体
     if (path_abspath(buf_path, PATH_MSIZE, pf_path)) {
-        printf(PACK_ERROR "无法获取主文件绝对路径：%s\n", pf_path);
+        printf(FPACK_ERROR "无法获取主文件绝对路径：%s\n", pf_path);
         exit(EXIT_CODE_FAILURE);
     }
-    printf(PACK_INFO "创建主文件：%s\n", buf_path);
+    printf(FPACK_INFO "创建主文件：%s\n", buf_path);
     cp_pf_path = malloc(strlen(buf_path) + 1ULL);
     if (!cp_pf_path) {
         PRINT_ERROR_AND_ABORT("为主文件路径数组分配内存失败");
@@ -182,40 +182,40 @@ fpack_t *fpack_make(const char *pf_path, bool overwrite) {
     strcpy(cp_pf_path, buf_path);
     if (path_exists(cp_pf_path)) {
         if (path_isdir(cp_pf_path)) {
-            printf(PACK_ERROR "此位置已存在同名目录\n");
+            printf(FPACK_ERROR "此位置已存在同名目录\n");
             exit(EXIT_CODE_FAILURE);
         } else if (path_last_state()) {
-            printf(PACK_ERROR "获取路径属性失败\n");
+            printf(FPACK_ERROR "获取路径属性失败\n");
             exit(EXIT_CODE_FAILURE);
         } else if (!overwrite) {
-            printf(PACK_ERROR "已存在同名文件但未指定覆盖\n");
+            printf(FPACK_ERROR "已存在同名文件但未指定覆盖\n");
             exit(EXIT_CODE_FAILURE);
         }
     } else if (path_last_state()) {
-        printf(PACK_ERROR "无法检查此路径是否存在\n");
+        printf(FPACK_ERROR "无法检查此路径是否存在\n");
         exit(EXIT_CODE_FAILURE);
     }
     if (!path_dirname(buf_path, PATH_MSIZE, buf_path)) {
-        printf(PACK_ERROR "获取主文件的父目录路径失败\n");
+        printf(FPACK_ERROR "获取主文件的父目录路径失败\n");
         exit(EXIT_CODE_FAILURE);
     }
     if (!path_exists(buf_path)) {
         if (path_mkdirs(buf_path)) {
-            printf(PACK_ERROR "为主文件创建目录失败\n");
+            printf(FPACK_ERROR "为主文件创建目录失败\n");
             exit(EXIT_CODE_FAILURE);
         }
     } else if (!path_isdir(buf_path)) {
-        printf(PACK_ERROR "父目录已被文件占用，无法创建主文件\n");
+        printf(FPACK_ERROR "父目录已被文件占用，无法创建主文件\n");
         exit(EXIT_CODE_FAILURE);
     }
     if (!(pfhd_pack = fopen_fpack(cp_pf_path, "wb"))) {
-        printf(PACK_ERROR "主文件创建失败\n");
+        printf(FPACK_ERROR "主文件创建失败\n");
         exit(EXIT_CODE_FAILURE);
     }
     if (fwrite(&df_head, sizeof(df_head), 1, pfhd_pack) != 1) {
         fclose(pfhd_pack);
         remove(pf_path);
-        PRINT_ERROR_AND_ABORT("写入PACK文件头失败");
+        PRINT_ERROR_AND_ABORT("写入<.fp>文件头失败");
     }
     // 此时文件指针已经在文件末尾
     if (fpack = malloc(sizeof(fpack_t))) {
@@ -233,20 +233,20 @@ fpack_t *fpack_make(const char *pf_path, bool overwrite) {
     }
 }
 
-// 打开已存在的PACK文件
+// 打开已存在的<.fp>文件
 fpack_t *fpack_open(const char *pf_path) {
-    fpack_t *fpack;            // PACK文件信息结构体
-    head_t tmp_head;           // 临时PACK文件头
+    fpack_t *fpack;            // <.fp>文件信息结构体
+    head_t tmp_head;           // 临时<.fp>文件头
     info_t *bom_pfile;         // 子文件信息表
     FILE *pfhd_pack;           // 主文件二进制流
     char buf_path[PATH_MSIZE]; // 绝对路径及父目录缓冲
     char *cp_pf_path;          // 拷贝路径用于结构体
     int64_t subn = 0LL;        // 子文件信息表容量
     if (path_abspath(buf_path, PATH_MSIZE, pf_path)) {
-        printf(PACK_ERROR "无法获取主文件绝对路径：%s\n", pf_path);
+        printf(FPACK_ERROR "无法获取主文件绝对路径：%s\n", pf_path);
         exit(EXIT_CODE_FAILURE);
     }
-    printf(PACK_INFO "打开主文件：%s\n", buf_path);
+    printf(FPACK_INFO "打开主文件：%s\n", buf_path);
     cp_pf_path = malloc(strlen(buf_path) + 1ULL);
     if (!cp_pf_path) {
         PRINT_ERROR_AND_ABORT("为主文件文件名分配内存失败");
@@ -254,22 +254,22 @@ fpack_t *fpack_open(const char *pf_path) {
     strcpy(cp_pf_path, buf_path);
     if (!path_isfile(cp_pf_path)) {
         if (path_last_state()) {
-            printf(PACK_ERROR "获取主文件路径属性失败\n");
+            printf(FPACK_ERROR "获取主文件路径属性失败\n");
             exit(EXIT_CODE_FAILURE);
         } else {
-            printf(PACK_ERROR "此路径不是一个文件路径\n");
+            printf(FPACK_ERROR "此路径不是一个文件路径\n");
             exit(EXIT_CODE_FAILURE);
         }
     }
     if (!(pfhd_pack = fopen_fpack(cp_pf_path, "r+b"))) {
-        printf(PACK_ERROR "主文件打开失败\n");
+        printf(FPACK_ERROR "主文件打开失败\n");
         exit(EXIT_CODE_FAILURE);
     }
     if (fread(&tmp_head, sizeof(tmp_head), 1, pfhd_pack) != 1) {
         PRINT_ERROR_AND_ABORT("读取主文件头失败");
     }
     if (memcmp(df_head.id, tmp_head.id, sizeof(df_head.id))) {
-        printf(PACK_ERROR "此文件不是一个PACK文件\n");
+        printf(FPACK_ERROR "此文件不是一个<.fp>文件\n");
         exit(EXIT_CODE_FAILURE);
     }
     if (tmp_head.count > 0)
@@ -317,11 +317,11 @@ fpack_t *fpack_open(const char *pf_path) {
         return fpack;
     } else {
         free(bom_pfile), free(cp_pf_path);
-        PRINT_ERROR_AND_ABORT("为pack文件信息结构体分配内存失败");
+        PRINT_ERROR_AND_ABORT("为<.fp>文件信息结构体分配内存失败");
     }
 }
 
-// 将目标打包进已创建的空PACK文件
+// 将目标打包进已创建的空<.fp>文件
 fpack_t *fpack_pack(const char *topack, bool sd, fpack_t *fpack, bool add) {
     // 如果packto是目录，则此变量用于存放其父目录
     char *parent_dir;
@@ -343,11 +343,11 @@ fpack_t *fpack_pack(const char *topack, bool sd, fpack_t *fpack, bool add) {
         PRINT_ERROR_AND_ABORT("打包目标路径是空字符串");
     }
     if (!path_exists(topack)) {
-        printf(PACK_ERROR "目标文件或目录不存在：%s\n", topack);
+        printf(FPACK_ERROR "目标文件或目录不存在：%s\n", topack);
         exit(EXIT_CODE_FAILURE);
     }
     if (fpack->head.count > 0LL && !add) {
-        printf(PACK_WARN "主文件已打包%" INT64_SPECIFIER "个文件，但此次未指定增量打包\n", fpack->head.count);
+        printf(FPACK_WARN "主文件已打包%" I64_SPECIFIER "个文件，但此次未指定增量打包\n", fpack->head.count);
         exit(EXIT_CODE_FAILURE);
     }
     strcpy(buf_absp1, fpack->fpath);
@@ -363,7 +363,7 @@ fpack_t *fpack_pack(const char *topack, bool sd, fpack_t *fpack, bool add) {
         PRINT_ERROR_AND_ABORT("为文件读写缓冲区分配初始内存失败");
     }
     if (path_isfile(topack)) {
-        printf(PACK_INFO "写入：%s\n", topack);
+        printf(FPACK_INFO "写入：%s\n", topack);
         if (path_abspath(buf_absp2, PATH_MSIZE, topack)) {
             WHETHER_CLOSE_REMOVE(fpack);
             PRINT_ERROR_AND_ABORT("获取子文件绝对路径失败");
@@ -376,12 +376,12 @@ fpack_t *fpack_pack(const char *topack, bool sd, fpack_t *fpack, bool add) {
 #endif // _WIN32
         {
             WHETHER_CLOSE_REMOVE(fpack);
-            printf(PACK_ERROR "退出：此文件是主文件\n");
+            printf(FPACK_ERROR "退出：此文件是主文件\n");
             exit(EXIT_CODE_SUCCESS);
         }
         if (!path_basename(finfo.fname, PATH_MSIZE, buf_absp2)) {
             WHETHER_CLOSE_REMOVE(fpack);
-            printf(PACK_ERROR "获取子文件名失败：%s\n", buf_absp2);
+            printf(FPACK_ERROR "获取子文件名失败：%s\n", buf_absp2);
             exit(EXIT_CODE_FAILURE);
         }
 #ifdef _WIN32
@@ -391,7 +391,7 @@ fpack_t *fpack_pack(const char *topack, bool sd, fpack_t *fpack, bool add) {
         finfo.fnlen = (int16_t)(strlen(finfo.fname) + 1);
         if (!(stream_subfile = fopen_fpack(topack, "rb"))) {
             WHETHER_CLOSE_REMOVE(fpack);
-            printf(PACK_ERROR "打开子文件失败：%s\n", topack);
+            printf(FPACK_ERROR "打开子文件失败：%s\n", topack);
             exit(EXIT_CODE_FAILURE);
         }
         fseek_fpack(stream_subfile, 0, SEEK_END);
@@ -453,14 +453,14 @@ fpack_t *fpack_pack(const char *topack, bool sd, fpack_t *fpack, bool add) {
             WHETHER_CLOSE_REMOVE(fpack);
             PRINT_ERROR_AND_ABORT("为子文件父目录缓冲区分配内存失败");
         }
-        printf(PACK_INFO "扫描目录...\n");
+        printf(FPACK_INFO "扫描目录...\n");
         if (!(scanlist_paths = path_mkscan(0))) {
             WHETHER_CLOSE_REMOVE(fpack);
             PRINT_ERROR_AND_ABORT("创建路径扫描器失败");
         }
         if (path_scanpath(buf_absp2, FTYPE_BOTH, sd, &scanlist_paths)) {
             WHETHER_CLOSE_REMOVE(fpack);
-            printf(PACK_ERROR "扫描目录失败：%s\n", buf_absp2);
+            printf(FPACK_ERROR "扫描目录失败：%s\n", buf_absp2);
             exit(EXIT_CODE_FAILURE);
         }
         if (!expand_bom(fpack, scanlist_paths->count)) {
@@ -468,14 +468,14 @@ fpack_t *fpack_pack(const char *topack, bool sd, fpack_t *fpack, bool add) {
             PRINT_ERROR_AND_ABORT("扩充子文件信息表容量失败");
         }
         for (size_t i = 0; i < scanlist_paths->count; ++i) {
-            printf(PACK_INFO "写入：%s\n", scanlist_paths->paths[i]);
+            printf(FPACK_INFO "写入：%s\n", scanlist_paths->paths[i]);
             if (path_isdir(scanlist_paths->paths[i])) {
                 finfo.fsize = DIR_SIZE; // 目录大小定义为DIR_SIZE
                 if (path_relpath(finfo.fname, PATH_MSIZE, scanlist_paths->paths[i], parent_dir)) {
                     if (i >= scanlist_paths->count - 1) {
                         WHETHER_CLOSE_REMOVE(fpack);
                     }
-                    printf(PACK_WARN "跳过：获取子目录相对路径失败");
+                    printf(FPACK_WARN "跳过：获取子目录相对路径失败");
                     continue;
                 }
 #ifdef _WIN32
@@ -487,7 +487,7 @@ fpack_t *fpack_pack(const char *topack, bool sd, fpack_t *fpack, bool add) {
                     if (i >= scanlist_paths->count - 1) {
                         WHETHER_CLOSE_REMOVE(fpack);
                     }
-                    printf(PACK_WARN "跳过：获取当前字段偏移量失败\n");
+                    printf(FPACK_WARN "跳过：获取当前字段偏移量失败\n");
                     continue;
                 }
                 // 按fsize、fnlen类型长度及fnlen值将finfo_tmp的一部分写入主文件
@@ -497,7 +497,7 @@ fpack_t *fpack_pack(const char *topack, bool sd, fpack_t *fpack, bool add) {
                     } else {
                         fseek_fpack(fpack->pfhd, finfo.offset, SEEK_SET);
                     }
-                    printf(PACK_WARN "跳过：写入子文件属性失败\n");
+                    printf(FPACK_WARN "跳过：写入子文件属性失败\n");
                     continue;
                 }
             } else {
@@ -511,21 +511,21 @@ fpack_t *fpack_pack(const char *topack, bool sd, fpack_t *fpack, bool add) {
                     if (i >= scanlist_paths->count - 1) {
                         WHETHER_CLOSE_REMOVE(fpack);
                     }
-                    printf(PACK_WARN "跳过：此文件是主文件\n");
+                    printf(FPACK_WARN "跳过：此文件是主文件\n");
                     continue;
                 }
                 if (path_relpath(finfo.fname, PATH_MSIZE, scanlist_paths->paths[i], parent_dir)) {
                     if (i >= scanlist_paths->count - 1) {
                         WHETHER_CLOSE_REMOVE(fpack);
                     }
-                    printf(PACK_WARN "跳过：获取子文件相对路径失败\n");
+                    printf(FPACK_WARN "跳过：获取子文件相对路径失败\n");
                     continue;
                 }
                 if (!(stream_subfile = fopen_fpack(scanlist_paths->paths[i], "rb"))) {
                     if (i >= scanlist_paths->count - 1) {
                         WHETHER_CLOSE_REMOVE(fpack);
                     }
-                    printf(PACK_WARN "跳过：子文件打开失败\n");
+                    printf(FPACK_WARN "跳过：子文件打开失败\n");
                     continue;
                 }
                 fseek_fpack(stream_subfile, 0, SEEK_END);
@@ -541,11 +541,11 @@ fpack_t *fpack_pack(const char *topack, bool sd, fpack_t *fpack, bool add) {
                         WHETHER_CLOSE_REMOVE(fpack);
                     }
                     fclose(stream_subfile);
-                    printf(PACK_WARN "跳过：获取主文件指针位置失败\n");
+                    printf(FPACK_WARN "跳过：获取主文件指针位置失败\n");
                     continue;
                 }
                 if (fwrite(&finfo.fsize, FSNL_S + finfo.fnlen, 1, fpack->pfhd) != 1) {
-                    printf(PACK_WARN "跳过：写入子文件属性失败\n");
+                    printf(FPACK_WARN "跳过：写入子文件属性失败\n");
                     if (i >= scanlist_paths->count - 1) {
                         WHETHER_CLOSE_REMOVE(fpack);
                     } else {
@@ -562,7 +562,7 @@ fpack_t *fpack_pack(const char *topack, bool sd, fpack_t *fpack, bool add) {
                             fseek_fpack(fpack->pfhd, finfo.offset, SEEK_SET);
                         }
                         fclose(stream_subfile);
-                        printf(PACK_WARN "跳过：将子文件写入主文件失败\n");
+                        printf(FPACK_WARN "跳过：将子文件写入主文件失败\n");
                         continue;
                     }
                 } else if (finfo.fsize > 0) { // 大小等于0的文件无需读写
@@ -575,7 +575,7 @@ fpack_t *fpack_pack(const char *topack, bool sd, fpack_t *fpack, bool add) {
                             WHETHER_CLOSE_REMOVE(fpack);
                         }
                         fclose(stream_subfile);
-                        printf(PACK_WARN "跳过：读取子文件失败\n");
+                        printf(FPACK_WARN "跳过：读取子文件失败\n");
                         continue;
                     }
                     if (fwrite(buf_frw->fdata, finfo.fsize, 1, fpack->pfhd) != 1) {
@@ -585,7 +585,7 @@ fpack_t *fpack_pack(const char *topack, bool sd, fpack_t *fpack, bool add) {
                             fseek_fpack(fpack->pfhd, finfo.offset, SEEK_SET);
                         }
                         fclose(stream_subfile);
-                        printf(PACK_WARN "跳过：将子文件写入主文件失败\n");
+                        printf(FPACK_WARN "跳过：将子文件写入主文件失败\n");
                         continue;
                     }
                 }
@@ -596,7 +596,7 @@ fpack_t *fpack_pack(const char *topack, bool sd, fpack_t *fpack, bool add) {
         path_delscan(scanlist_paths);
     } else {
         WHETHER_CLOSE_REMOVE(fpack);
-        printf(PACK_ERROR "路径不是文件也不是目录：%s\n", topack);
+        printf(FPACK_ERROR "路径不是文件也不是目录：%s\n", topack);
         exit(EXIT_CODE_FAILURE);
     }
     fseek_fpack(fpack->pfhd, fpack->start + FCNT_O, SEEK_SET);
@@ -609,8 +609,8 @@ fpack_t *fpack_pack(const char *topack, bool sd, fpack_t *fpack, bool add) {
     return fpack;
 }
 
-// 打印PACK文件中的文件列表即其他信息
-fpack_t *fpack_info(const char *pk_path) {
+// 打印<.fp>文件中的文件列表即其他信息
+fpack_t *fpack_info(const char *fp_path) {
     size_t a, b, c;        // 已打印的(大小、类型、路径)累计字符数
     size_t tmp_strlen;     // 每个fname长度的临时变量
     size_t max_strlen = 0; // 长度最大的fname的值
@@ -619,10 +619,10 @@ fpack_t *fpack_info(const char *pk_path) {
     fpack_t *fpack;        // 主文件信息结构体
     char eqs1[EQS_MAX];    // 打印的子文件列表分隔符共用缓冲区
     char *eqs2, *eqs3;     // 用于将上面缓冲区分离为三个字符串
-    if (is_fake_jpeg(pk_path))
-        fpack = fpack_fakej_open(pk_path);
+    if (is_fake_jpeg(fp_path))
+        fpack = fpack_fakej_open(fp_path);
     else
-        fpack = fpack_open(pk_path);
+        fpack = fpack_open(fp_path);
     s = fpack->head.sp;
     for (index = 0; index < fpack->head.count; ++index) {
         tmp_strlen = strlen(fpack->subs[index].fname);
@@ -630,14 +630,14 @@ fpack_t *fpack_info(const char *pk_path) {
             max_strlen = tmp_strlen;
     }
 #ifdef _MSC_VER
-    // 打开MSC编译器printf的%n占位符支持
+    // 打开MSVC编译器printf的%n占位符支持
     _set_printf_count_output(1);
 #endif // _MSC_VER
     printf("\n格式版本：");
     printf("%hd.%hd.%hd.%hd\t", s[0], s[1], s[2], s[3]);
     printf("包含条目总数：");
-    printf("%" INT64_SPECIFIER "\n\n", fpack->head.count);
-    printf("%19s%zn\t%4s%zn\t%s%zn\n", "大小", &a, "类型", &b, "路径", &c);
+    printf("%" I64_SPECIFIER "\n\n", fpack->head.count);
+    printf("%19s%zn\t%4s%zn\t%s%zn\n", "大小", &a, "类型", &b, "路径和文件名", &c);
     if (max_strlen < c - b - 1)
         max_strlen = c - b - 1;
     else if (max_strlen >= EQS_MAX)
@@ -650,16 +650,16 @@ fpack_t *fpack_info(const char *pk_path) {
     eqs3[max_strlen] = EMPTY_CHAR;
     printf("%s\t%s\t%s\n", eqs1, eqs2, eqs3);
     for (index = 0; index < fpack->head.count; ++index) {
-        printf("%19" INT64_SPECIFIER "\t%s\t%s\n", fpack->subs[index].fsize, fpack->subs[index].fsize < 0 ? "目录" : "文件", fpack->subs[index].fname);
+        printf("%19" I64_SPECIFIER "\t%s\t%s\n", fpack->subs[index].fsize, fpack->subs[index].fsize < 0 ? "目录" : "文件", fpack->subs[index].fname);
     }
     printf("\n格式版本：");
     printf("%hd.%hd.%hd.%hd\t", s[0], s[1], s[2], s[3]);
     printf("包含条目总数：");
-    printf("%" INT64_SPECIFIER "\n\n", fpack->head.count);
+    printf("%" I64_SPECIFIER "\n\n", fpack->head.count);
     return fpack;
 }
 
-// 从PACK文件中提取子文件
+// 从<.fp>文件中提取子文件
 fpack_t *fpack_extract(const char *name, const char *save_path, int overwrite, fpack_t *fpack) {
     int64_t index;  // 循环遍历子文件时的下标
     int64_t offset; // 子文件字段在主文件中的偏移
@@ -681,15 +681,15 @@ fpack_t *fpack_extract(const char *name, const char *save_path, int overwrite, f
     else {
         if (!path_exists(save_path)) {
             if (path_last_state()) {
-                fprintf(stderr, PACK_ERROR "获取路径属性失败：%s\n", save_path);
+                fprintf(stderr, FPACK_ERROR "获取路径属性失败：%s\n", save_path);
                 exit(EXIT_CODE_FAILURE);
             }
             if (path_mkdirs(save_path)) {
-                fprintf(stderr, PACK_ERROR "创建目录失败：%s\n", save_path);
+                fprintf(stderr, FPACK_ERROR "创建目录失败：%s\n", save_path);
                 exit(EXIT_CODE_FAILURE);
             }
         } else if (!path_isdir(save_path)) {
-            fprintf(stderr, PACK_ERROR "保存目录已被文件名占用：%s\n", save_path);
+            fprintf(stderr, FPACK_ERROR "保存目录已被文件名占用：%s\n", save_path);
             exit(EXIT_CODE_FAILURE);
         }
     }
@@ -710,55 +710,55 @@ fpack_t *fpack_extract(const char *name, const char *save_path, int overwrite, f
                 continue;
 #endif
         }
-        printf(PACK_INFO "提取：%s\n", fpack->subs[index].fname);
+        printf(FPACK_INFO "提取：%s\n", fpack->subs[index].fname);
         if (path_joinpath(buf_sub_path, PATH_MSIZE, 2, save_path, fpack->subs[index].fname)) {
-            printf(PACK_WARN "跳过：拼接子文件完整路径失败\n");
+            printf(FPACK_WARN "跳过：拼接子文件完整路径失败\n");
             continue;
         }
         if (fpack->subs[index].fsize < 0) {
             if (path_exists(buf_sub_path)) {
                 if (path_isdir(fpack->subs[index].fname))
                     continue;
-                printf(PACK_WARN "跳过：目录名称已被文件占用s\n");
+                printf(FPACK_WARN "跳过：目录名称已被文件占用s\n");
                 continue;
             }
             if (path_mkdirs(buf_sub_path)) {
-                printf(PACK_WARN "跳过：无法在此位置创建目录\n");
+                printf(FPACK_WARN "跳过：无法在此位置创建目录\n");
                 continue;
             }
         } else {
             if (path_exists(buf_sub_path)) {
                 if (path_isdir(buf_sub_path)) {
-                    printf(PACK_WARN "跳过：文件路径已被目录占用：%s\n", buf_sub_path);
+                    printf(FPACK_WARN "跳过：文件路径已被目录占用：%s\n", buf_sub_path);
                     continue;
                 }
                 if (!overwrite) {
-                    printf(PACK_WARN "跳过：文件已存在且未指定覆盖：%s\n", buf_sub_path);
+                    printf(FPACK_WARN "跳过：文件已存在且未指定覆盖：%s\n", buf_sub_path);
                     continue;
                 }
             }
             if (!path_dirname(buf_sub_pard, PATH_MSIZE, buf_sub_path)) {
-                printf(PACK_WARN "跳过：获取父级路径失败\n");
+                printf(FPACK_WARN "跳过：获取父级路径失败\n");
                 continue;
             }
             if (path_exists(buf_sub_pard)) {
                 if (path_isfile(buf_sub_pard)) {
-                    printf(PACK_WARN "跳过：目录路径已被文件占用：%s\n", buf_sub_pard);
+                    printf(FPACK_WARN "跳过：目录路径已被文件占用：%s\n", buf_sub_pard);
                     continue;
                 }
             } else {
                 if (path_mkdirs(buf_sub_pard)) {
-                    printf(PACK_WARN "跳过：目录创建失败：%s\n", buf_sub_pard);
+                    printf(FPACK_WARN "跳过：目录创建失败：%s\n", buf_sub_pard);
                 }
             }
             if (!(fhnd_subfile = fopen_fpack(buf_sub_path, "wb"))) {
-                printf(PACK_WARN "跳过：子文件创建失败：%s\n", buf_sub_path);
+                printf(FPACK_WARN "跳过：子文件创建失败：%s\n", buf_sub_path);
                 continue;
             }
             offset = fpack->subs[index].offset + FSNL_S + fpack->subs[index].fnlen;
             if (fpack->subs[index].fsize > U_BUF_SIZE) {
                 if (!copier_pack2sub(fpack->pfhd, offset, fpack->subs[index].fsize, fhnd_subfile, &buf_frw)) {
-                    printf(PACK_WARN "跳过：写入子文件数据失败：%s\n", buf_sub_path);
+                    printf(FPACK_WARN "跳过：写入子文件数据失败：%s\n", buf_sub_path);
                     continue;
                 }
             } else if (fpack->subs[index].fsize > 0) {
@@ -768,15 +768,15 @@ fpack_t *fpack_extract(const char *name, const char *save_path, int overwrite, f
                     }
                 }
                 if (fseek_fpack(fpack->pfhd, offset, SEEK_SET)) {
-                    printf(PACK_WARN "跳过：移动主文件指针失败\n");
+                    printf(FPACK_WARN "跳过：移动主文件指针失败\n");
                     continue;
                 }
                 if (fread(buf_frw->fdata, fpack->subs[index].fsize, 1, fpack->pfhd) != 1) {
-                    printf(PACK_WARN "跳过：读取子文件数据失败");
+                    printf(FPACK_WARN "跳过：读取子文件数据失败");
                     continue;
                 }
                 if (fwrite(buf_frw->fdata, fpack->subs[index].fsize, 1, fhnd_subfile) != 1) {
-                    printf(PACK_WARN "跳过：写入子文件数据失败");
+                    printf(FPACK_WARN "跳过：写入子文件数据失败");
                     continue;
                 }
             }
@@ -789,7 +789,7 @@ fpack_t *fpack_extract(const char *name, const char *save_path, int overwrite, f
 }
 
 // 创建空的伪装的JPEG文件
-fpack_t *fpack_fakej_make(const char *pf_path, const char *jpeg_path, bool overwrite) {
+fpack_t *fpack_fakej_make(const char *fp_path, const char *jpeg_path, bool overwrite) {
     FILE *pfhd_pack;           // 主文件二进制文件流
     FILE *fhd_jpeg;            // JPEG文件二进制文件流
     fpack_t *fpack;            // 主文件信息结构体
@@ -798,11 +798,11 @@ fpack_t *fpack_fakej_make(const char *pf_path, const char *jpeg_path, bool overw
     buf_t *buf_frw;            // 文件读写缓冲区
     char *cp_pf_path;          // 复制的文件路径
     char buf_path[PATH_MSIZE]; // 绝对路径及父目录缓冲
-    if (path_abspath(buf_path, PATH_MSIZE, pf_path)) {
-        printf(PACK_ERROR "无法获取主文件绝对路径：%s\n", pf_path);
+    if (path_abspath(buf_path, PATH_MSIZE, fp_path)) {
+        printf(FPACK_ERROR "无法获取主文件绝对路径：%s\n", fp_path);
         exit(EXIT_CODE_FAILURE);
     }
-    printf(PACK_INFO "创建主文件：%s\n", buf_path);
+    printf(FPACK_INFO "创建主文件：%s\n", buf_path);
     cp_pf_path = malloc(strlen(buf_path) + 1ULL);
     if (!cp_pf_path) {
         PRINT_ERROR_AND_ABORT("为主文件路径数组分配内存失败");
@@ -810,34 +810,34 @@ fpack_t *fpack_fakej_make(const char *pf_path, const char *jpeg_path, bool overw
     strcpy(cp_pf_path, buf_path);
     if (path_exists(cp_pf_path)) {
         if (path_isdir(cp_pf_path)) {
-            printf(PACK_ERROR "此位置已存在同名目录\n");
+            printf(FPACK_ERROR "此位置已存在同名目录\n");
             exit(EXIT_CODE_FAILURE);
         } else if (path_last_state()) {
-            printf(PACK_ERROR "获取路径属性失败\n");
+            printf(FPACK_ERROR "获取路径属性失败\n");
             exit(EXIT_CODE_FAILURE);
         } else if (!overwrite) {
-            printf(PACK_ERROR "已存在同名文件但未指定覆盖\n");
+            printf(FPACK_ERROR "已存在同名文件但未指定覆盖\n");
             exit(EXIT_CODE_FAILURE);
         }
     } else if (path_last_state()) {
-        printf(PACK_ERROR "无法检查此路径是否存在\n");
+        printf(FPACK_ERROR "无法检查此路径是否存在\n");
         exit(EXIT_CODE_FAILURE);
     }
     if (!path_dirname(buf_path, PATH_MSIZE, buf_path)) {
-        printf(PACK_ERROR "获取主文件的父目录路径失败\n");
+        printf(FPACK_ERROR "获取主文件的父目录路径失败\n");
         exit(EXIT_CODE_FAILURE);
     }
     if (!path_exists(buf_path)) {
         if (path_mkdirs(buf_path)) {
-            printf(PACK_ERROR "为主文件创建目录失败\n");
+            printf(FPACK_ERROR "为主文件创建目录失败\n");
             exit(EXIT_CODE_FAILURE);
         }
     } else if (!path_isdir(buf_path)) {
-        printf(PACK_ERROR "父目录名已被文件名占用：%s\n", buf_path);
+        printf(FPACK_ERROR "父目录名已被文件名占用：%s\n", buf_path);
         exit(EXIT_CODE_FAILURE);
     }
     if (!path_isfile(jpeg_path)) {
-        printf(PACK_ERROR "指定的图像路径不是一个文件或不存在：%s\n", jpeg_path);
+        printf(FPACK_ERROR "指定的图像路径不是一个文件或不存在：%s\n", jpeg_path);
         exit(EXIT_CODE_FAILURE);
     }
     if (!(pfhd_pack = fopen_fpack(cp_pf_path, "wb"))) {
@@ -866,9 +866,9 @@ fpack_t *fpack_fakej_make(const char *pf_path, const char *jpeg_path, bool overw
     jpeg_netsize = realsizeofj(fhd_jpeg, fake_jpeg_size, &buf_frw);
     rewind(fhd_jpeg);
     if (jpeg_netsize == JPEG_INVALID) {
-        printf(PACK_WARN "无效的JPEG图像：%s\n", jpeg_path);
+        printf(FPACK_WARN "无效的JPEG图像：%s\n", jpeg_path);
         exit(EXIT_CODE_FAILURE);
-    } else if (jpeg_netsize == JPEG_ERRORS) {
+    } else if (jpeg_netsize == JPEG_ERROR) {
         PRINT_ERROR_AND_ABORT("验证JPEG图像过程中发生错误");
     }
     if (fake_jpeg_size > U_BUF_SIZE) {
@@ -903,7 +903,7 @@ fpack_t *fpack_fakej_make(const char *pf_path, const char *jpeg_path, bool overw
     if (fwrite(&df_head, sizeof(head_t), 1, pfhd_pack) != 1) {
         fclose(fhd_jpeg);
         fclose(pfhd_pack), remove(cp_pf_path);
-        PRINT_ERROR_AND_ABORT("写入PACK文件头信息失败");
+        PRINT_ERROR_AND_ABORT("写入<.fp>文件头信息失败");
     }
     // 最后一次写入后主文件的文件指针已移至末尾不需再移
     if (fpack = malloc(sizeof(fpack_t))) {
@@ -924,8 +924,8 @@ fpack_t *fpack_fakej_make(const char *pf_path, const char *jpeg_path, bool overw
 
 // 打开已存在的伪装的JPEG文件
 fpack_t *fpack_fakej_open(const char *fake_jpeg_path) {
-    fpack_t *fpack;            // PACK文件信息结构体
-    head_t tmp_head;           // 临时PACK文件头
+    fpack_t *fpack;            // <.fp>文件信息结构体
+    head_t tmp_head;           // 临时<.fp>文件头
     info_t *bom_pfile;         // 子文件信息表
     FILE *pfhd_pack;           // 主文件二进制流
     char buf_path[PATH_MSIZE]; // 绝对路径及父目录缓冲
@@ -935,10 +935,10 @@ fpack_t *fpack_fakej_open(const char *fake_jpeg_path) {
     int64_t fake_jpeg_size;    // 伪JPEG文件的总大小
     int64_t jpeg_netsize;      // 伪JPEG文件净大小
     if (path_abspath(buf_path, PATH_MSIZE, fake_jpeg_path)) {
-        printf(PACK_ERROR "无法获取文件绝对路径：%s\n", fake_jpeg_path);
+        printf(FPACK_ERROR "无法获取文件绝对路径：%s\n", fake_jpeg_path);
         exit(EXIT_CODE_FAILURE);
     }
-    printf(PACK_INFO "打开主文件：%s\n", buf_path);
+    printf(FPACK_INFO "打开主文件：%s\n", buf_path);
     cp_pf_path = malloc(strlen(buf_path) + 1ULL);
     if (!cp_pf_path) {
         PRINT_ERROR_AND_ABORT("为伪图文件文件名分配内存失败");
@@ -946,10 +946,10 @@ fpack_t *fpack_fakej_open(const char *fake_jpeg_path) {
     strcpy(cp_pf_path, buf_path);
     if (!path_isfile(cp_pf_path)) {
         if (path_last_state()) {
-            printf(PACK_ERROR "获取主文件路径属性失败\n");
+            printf(FPACK_ERROR "获取主文件路径属性失败\n");
             exit(EXIT_CODE_FAILURE);
         } else {
-            printf(PACK_ERROR "此路径不是一个文件路径\n");
+            printf(FPACK_ERROR "此路径不是一个文件路径\n");
             exit(EXIT_CODE_FAILURE);
         }
     }
@@ -959,7 +959,7 @@ fpack_t *fpack_fakej_open(const char *fake_jpeg_path) {
         PRINT_ERROR_AND_ABORT("为文件读写缓冲区分配内存失败");
     }
     if (!(pfhd_pack = fopen_fpack(cp_pf_path, "r+b"))) {
-        printf(PACK_ERROR "主文件打开失败\n");
+        printf(FPACK_ERROR "主文件打开失败\n");
         exit(EXIT_CODE_FAILURE);
     }
     if (fseek_fpack(pfhd_pack, 0LL, SEEK_END)) {
@@ -970,21 +970,21 @@ fpack_t *fpack_fakej_open(const char *fake_jpeg_path) {
     }
     jpeg_netsize = realsizeofj(pfhd_pack, fake_jpeg_size, &buf_frw);
     if (jpeg_netsize == JPEG_INVALID) {
-        printf(PACK_WARN "无效的伪JPEG文件\n");
+        printf(FPACK_WARN "无效的伪JPEG文件\n");
         exit(EXIT_CODE_FAILURE);
-    } else if (jpeg_netsize == JPEG_ERRORS) {
-        printf(PACK_ERROR "查找伪JPEG文件结束点时出错\n");
+    } else if (jpeg_netsize == JPEG_ERROR) {
+        printf(FPACK_ERROR "查找伪JPEG文件结束点时出错\n");
         exit(EXIT_CODE_FAILURE);
     }
     if (fseek_fpack(pfhd_pack, jpeg_netsize, SEEK_SET)) {
-        printf(PACK_ERROR "移动文件指针失败\n");
+        printf(FPACK_ERROR "移动文件指针失败\n");
         exit(EXIT_CODE_FAILURE);
     }
     if (fread(&tmp_head, sizeof(tmp_head), 1, pfhd_pack) != 1) {
         PRINT_ERROR_AND_ABORT("读取主文件头失败");
     }
     if (memcmp(df_head.id, tmp_head.id, sizeof(df_head.id))) {
-        printf(PACK_ERROR "此伪JPEG文件不包含PACK文件\n");
+        printf(FPACK_ERROR "此伪JPEG文件不包含<.fp>文件\n");
         exit(EXIT_CODE_FAILURE);
     }
     if (tmp_head.count > 0)
@@ -1030,6 +1030,6 @@ fpack_t *fpack_fakej_open(const char *fake_jpeg_path) {
         return fpack;
     } else {
         free(bom_pfile), free(cp_pf_path);
-        PRINT_ERROR_AND_ABORT("为PACK文件信息结构体分配内存失败");
+        PRINT_ERROR_AND_ABORT("为<.fp>文件信息结构体分配内存失败");
     }
 }
