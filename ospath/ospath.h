@@ -21,10 +21,10 @@
 #define STATUS_INVALID_PARAM 0x00000040 // 无效的参数值
 #define STATUS_INSFC_BUFFER  0x00000080 // 缓冲区空间不足
 
-// 函数path_scanpath的ftype参数可用值
-#define FTYPE_FILE 0x00000001 // 搜索文件
-#define FTYPE_DIR  0x00000002 // 搜索目录
-#define FTYPE_BOTH 0x00000004 // 文件与目录
+// 函数 OsPathScanPath 的 Target 参数可选值
+#define OSPATH_FILE 0x00000001 // 搜索文件
+#define OSPATH_DIR  0x00000002 // 搜索目录
+#define OSPATH_BOTH 0x00000004 // 文件与目录
 
 #define RESULT_SUCCESS 0 // 成功
 #define RESULT_FAILURE 1 // 失败
@@ -62,28 +62,28 @@ typedef struct {
     size_t blocks; // 数组paths能容纳的指针数
     size_t count;  // 数组paths中已写入的字符指针数量
     char *paths[]; // 保存路径字符指针的指针数组
-} scanner_t;
+} SCANNER_T;
 
-int path_last_state(void); //获取最后一次函数执行的错误状态
-scanner_t *path_mkscan(size_t block);
-int path_scanpath(const char *dir_path, int ftype, int subdirs, scanner_t **const pp_scanner);
-int path_delscan(scanner_t *scanlst);
-bool path_exists(const char *_path);
-bool path_isdir(const char *_path);
-bool path_isfile(const char *_path);
-bool path_isabs(const char *_path);
-int path_mkdirs(const char *_path);
-char *path_getcwd(char *buf, size_t size);
-char *path_normcase(char path[]);
-char *path_normpath(char path[], size_t size);
-int path_splitdrv(char buf_d[], size_t bdsize, char buf_p[], size_t bpsize, const char *_path);
-int path_joinpath(char buf[], size_t bfsize, int n, const char *_path, ...);
-int path_splitpath(char buf_h[], size_t bhsize, char buf_t[], size_t btsize, const char *_path);
-char *path_dirname(char buf_dir[], size_t bfsize, const char *_path);
-char *path_basename(char buf_base[], size_t bfsize, const char *_path);
-int path_relpath(char buf[], size_t bfsize, const char *_path, const char *start);
-int path_abspath(char buf[], size_t bfsize, const char *_path);
-int path_splitext(char buf_h[], size_t bhsize, char buf_e[], size_t besize, const char *_path, int extsep);
-int path_prunepath(char buf[], size_t bfsize, const char *_path);
+int OsPathLastState(void); //获取最后一次函数执行的错误状态
+SCANNER_T *OsPathMakeScanner(size_t Blocks);
+int OsPathDeleteScanner(SCANNER_T *Scanner);
+int OsPathScanPath(const char *DirPath, int Target, int Recursion, SCANNER_T **const ppScanner);
+bool OsPathExists(const char *Path);
+bool OsPathIsDirectory(const char *Path);
+bool OsPathIsFile(const char *Path);
+bool OsPathIsAbsolute(const char *Path);
+int OsPathMakeDIR(const char *Path);
+char *OsPathGetCWD(char *Buffer, size_t Size);
+char *OsPathNormcase(char *Path);
+char *OsPathNormpath(char Path[], size_t Size);
+int OsPathSplitDrive(char DriveBuffer[], size_t DriveBufSize, char PathBuffer[], size_t PathBufferSize, const char *Path);
+int OsPathJoinPath(char Buffer[], size_t BufferSize, int NumOfParam, const char *Path, ...);
+int OsPathSplitPath(char HeadBuffer[], size_t HeadBufSize, char TailBuffer[], size_t TailBufSize, const char *Path);
+char *OsPathDirName(char Buffer[], size_t BufferSize, const char *Path);
+char *OsPathBaseName(char Buffer[], size_t BufferSize, const char *Path);
+int OsPathRelativePath(char Buffer[], size_t BufferSize, const char *Path1, const char *Path2);
+int OsPathAbsolutePath(char Buffer[], size_t BufferSize, const char *Path);
+int OsPathSplitExt(char HeadBuffer[], size_t HeadBufSize, char ExtBuffer[], size_t ExtBufSize, const char *Path, int ExtSep);
+int OsPathPrunePath(char Buffer[], size_t BufferSize, const char *Path);
 
 #endif // __OSPATH_H

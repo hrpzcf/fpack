@@ -59,5 +59,5 @@ Windows平台编译方法：
 # 使用方法
 
 1. 将 `fpack` 或 `fpakc.exe` 所在目录路径加入系统环境变量 PATH (此步可忽略，但建议加入，否则每次使用 fpack 都需要在 fpack 所在目录打开 CMD 或 打开 CMD 再 cd 至 fpack 所在目录，不方便)；
-2. 输入命令`fpack -h`查看帮助。
+2. 输入命令`fpack help`查看帮助。
 3. 如果未加入系统环境变量 PATH 中，则需在命令窗口中 cd 至 `fpack` 所在目录，运行命令 `./fpack -h`，如果你使用的是 Windows 的 CMD 终端则加 `.\` 前缀，其他命令终端加 `./` 前缀。

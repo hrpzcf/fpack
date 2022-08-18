@@ -8,7 +8,7 @@
 // 返回值：函数返回写入缓冲区buf的字节数
 // 如果参数buf为NULL或bfsize为0，则返回容纳新字符串所需的缓冲区大小，以字符为单位
 // 注意：待转换字符一定要保证以'\\0'结束，否则一直寻找到'\\0'，即使数组越界也是如此
-int str_a2u(char buf[], int bfsize, char *ansiSTR) {
+int StringANSIToUTF8(char buf[], int bfsize, char *ansiSTR) {
     int length;
     char *ansi_tmp;
     if (NULL == (ansi_tmp = malloc(strlen(ansiSTR) + 1)))
@@ -41,7 +41,7 @@ int str_a2u(char buf[], int bfsize, char *ansiSTR) {
 // 返回值：函数返回写入缓冲区buf的字节数
 // 如果参数buf为NULL或bfsize为0，则返回容纳新字符串所需的缓冲区大小，以字符为单位
 // 注意：待转换字符一定要保证以'\\0'结束，否则一直寻找到'\\0'，即使数组越界也是如此
-int str_u2a(char buf[], int bfsize, char *utf8STR) {
+int StringUTF8ToANSI(char buf[], int bfsize, char *utf8STR) {
     int length;
     char *utf8_tmp;
     if (NULL == (utf8_tmp = malloc(strlen(utf8STR) + 1)))

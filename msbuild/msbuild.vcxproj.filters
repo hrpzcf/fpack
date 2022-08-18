@@ -27,6 +27,9 @@
     <ClInclude Include="..\entry\info.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="..\entry\main.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\ospath\ospath.c">

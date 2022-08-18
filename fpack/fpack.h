@@ -8,25 +8,25 @@
 
 #include "../ospath/ospath.h"
 
-#define FPACK_VER "0.1.1"
+#define FPACK_VER "0.1.2"
 
-#define FILE_MAX    LLONG_MAX  // 文件最大字节数
-#define PM          PATH_MSIZE // 路径最大字节数
-#define FPACK_INFO  "\33[32m[信息]\33[0m "
-#define FPACK_WARN  "\33[33m[警告]\33[0m "
-#define FPACK_ERROR "\33[31m[错误]\33[0m "
+#define FILE_MAX      LLONG_MAX  // 文件最大字节数
+#define PM            PATH_MSIZE // 路径最大字节数
+#define MESSAGE_INFO  "\33[32m[信息]\33[0m "
+#define MESSAGE_WARN  "\33[33m[警告]\33[0m "
+#define MESSAGE_ERROR "\33[31m[错误]\33[0m "
 
 #ifdef _WIN32
-#define fseek_fpack _fseeki64
-#define ftell_fpack _ftelli64
+#define FilePackfseek _fseeki64
+#define FilePackftell _ftelli64
 #define inline _inline
-int str_a2u(char buf[], int bfsize, char *ansiSTR);
-int str_u2a(char buf[], int bfsize, char *utf8STR);
+int StringANSIToUTF8(char buf[], int bfsize, char *ansiSTR);
+int StringUTF8ToANSI(char buf[], int bfsize, char *utf8STR);
 #else // else posix
-#define fseek_fpack fseek
-#define ftell_fpack ftell
+#define FilePackfseek fseek
+#define FilePackftell ftell
 #endif // _WIN32
-#define fopen_fpack fopen
+#define FilePackfopen fopen
 
 // 不同平台上printf中的int64_t格式化占位符
 #ifndef _WIN32
@@ -53,7 +53,7 @@ int str_u2a(char buf[], int bfsize, char *utf8STR);
 typedef struct {
     int64_t size;
     char fdata[];
-} buf_t;
+} BUFFER_T;
 
 #define L_BUF_SIZE 8388608LL   // 文件读写缓冲区大小下限
 #define U_BUF_SIZE 134217728LL // 文件读写缓冲区大小上限
@@ -75,7 +75,7 @@ typedef struct {
     char emt[EM_N];   // 预留空字节
     int16_t sp[SP_N]; // 文件规范版本
     int64_t count;    // 包含文件总数
-} head_t;             // 文件头信息结构体
+} HEAD_T;             // 文件头信息结构体
 #pragma pack()
 
 // 子文件信息，包括文件大小,文件名长度,文件名
@@ -87,21 +87,21 @@ typedef struct {
     int64_t fsize;  // 数据块大小
     int16_t fnlen;  // 文件名长度
     char fname[PM]; // 文件名字符串
-} info_t;
+} INFO_T;
 #pragma pack()
 
 // 文件基本信息结构体
 typedef struct {
-    head_t head;   // 文件的头信息
+    HEAD_T head;   // 文件的头信息
     int64_t start; // 标识符起始位置
-    info_t *subs;  // 子文件信息表
-    int64_t subn;  // subs的容量
-    FILE *pfhd;    // 打开的二进制流
-    char *fpath;   // 文件的绝对路径
-} fpack_t;
+    INFO_T *sheet; // 子文件信息表
+    int64_t cells; // sheet 的容量
+    char *path;    // 文件的绝对路径
+    FILE *handle;  // 打开的二进制流
+} FPACK_T;
 
 // 默认<.fp>文件头信息结构体
-static const head_t df_head = {
+static const HEAD_T DEFAULT_HEAD = {
     // 分别为：2位年份，主版本，次版本，修订版本
     .sp = {22, 1, 0, 6},
     // 预留的空字节用于可能增加的信息字段
@@ -114,13 +114,13 @@ static const head_t df_head = {
 
 // 出错时打印调试信息及退出程序
 #define PRINT_ERROR_AND_ABORT(STR) \
-    fprintf(stderr, FPACK_ERROR STR ": 源码 %s 第 %d 行，[ %s ]\n", path_basename(NULL, 0ULL, __FILE__), __LINE__, FPACK_VER); \
+    fprintf(stderr, MESSAGE_ERROR STR ": 源码 %s 第 %d 行，[ %s ]\n", OsPathBaseName(NULL, 0ULL, __FILE__), __LINE__, FPACK_VER); \
     exit(EXIT_CODE_FAILURE)
 
 // 出错时判断是否关闭文件流并删除文件
 #define WHETHER_CLOSE_REMOVE(PACK) \
     if (PACK->head.count <= 0) { \
-        fclose(PACK->pfhd), remove(PACK->fpath); \
+        fclose(PACK->handle), remove(PACK->path); \
     }
 
 #define FS_S (sizeof(int64_t))        // bom的fsize字段大小
@@ -134,14 +134,14 @@ static const head_t df_head = {
 #define DATA_O (ID_S + SP_S + EM_S + FC_S) // 数据块起始偏移量
 #define FSNL_S (FS_S + NL_S)               // 结构体finfo_t中fsize和fnlen的类型大小之和
 
-bool is_fake_jpeg(const char *fake_jpeg_path);
-fpack_t *fpack_make(const char *file_path, bool overwrite);
-fpack_t *fpack_open(const char *file_path);
-void fpack_close(fpack_t *fpack);
-fpack_t *fpack_pack(const char *topack, bool sd, fpack_t *fpack, bool add);
-fpack_t *fpack_extract(const char *name, const char *save_path, int overwrite, fpack_t *fpack);
-fpack_t *fpack_info(const char *fp_path);
-fpack_t *fpack_fakej_make(const char *fp_path, const char *jpeg_path, bool overwrite);
-fpack_t *fpack_fakej_open(const char *fake_jpeg_path);
+FPACK_T *FilePackMake(const char *file_path, bool overwrite);
+FPACK_T *FilePackOpen(const char *file_path);
+void FilePackClose(FPACK_T *fpack);
+FPACK_T *FilePackPack(const char *topack, bool sd, FPACK_T *fpack, bool add);
+FPACK_T *FilePackExtract(const char *name, const char *save_path, int overwrite, FPACK_T *fpack);
+FPACK_T *FilePackInfo(const char *fp_path);
+bool FilePackIsFakeJPEG(const char *fake_jpeg_path);
+FPACK_T *FilePackMakeFakeJPEG(const char *fp_path, const char *jpeg_path, bool overwrite);
+FPACK_T *FilePackOpenFakeJPEG(const char *fake_jpeg_path);
 
 #endif //__FILEPACK_H
