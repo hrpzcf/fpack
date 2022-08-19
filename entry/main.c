@@ -13,17 +13,17 @@
 #include "main.h"
 
 int ParseCommands(int argc, char **argvs) {
-    bool overwrite = false;
-    bool add = false;
-    bool subs = false;
-    int sub_opt;
-    FPACK_T *fpack; // 主文件信息结构体指针
-    static char fpack_file_path[PATH_MSIZE];
-    static char target_dir_path[PATH_MSIZE];
-    static char jpeg_file_path[PATH_MSIZE];
-    static char executable_name[PATH_MSIZE];
-    static char extract_name[PATH_MSIZE];
-    const char *p_extr_name = extract_name;
+    bool Overwrite = false;
+    bool Append = false;
+    bool Recursion = false;
+    int SubOption;
+    FPACK_T *pFilePack; // 主文件信息结构体指针
+    static char MainFIlePath[PATH_MSIZE];
+    static char TargetDirPath[PATH_MSIZE];
+    static char JPEGFilePath[PATH_MSIZE];
+    static char ExecutableName[PATH_MSIZE];
+    static char NameToExtract[PATH_MSIZE];
+    const char *pNameToExtract = NameToExtract;
     // 主命令，必须是第一个命令行参数
     const char *MAINCMD_HELP = "help"; // 显示此程序的帮助信息
     const char *MAINCMD_VERS = "vers"; // 显示此程序的版本信息
@@ -38,201 +38,201 @@ int ParseCommands(int argc, char **argvs) {
     const char *SUBCMD_EXTR = "p:t:n:o";   // 主命令[extr]的子选项
 
     if (argc < 2) {
-        fprintf(stderr, MESSAGE_ERROR "命令行参数不足，请使用-h命令查看使用帮助。\n");
+        fprintf(stderr, MESSAGE_ERROR "命令行参数不足，请使用 help 命令查看使用帮助。\n");
         return EXIT_CODE_FAILURE;
     }
-    optind = 2; // 查找参数从第3个开始，否则查不到（getopt.h全局变量）
-    OsPathSplitExt(executable_name, PATH_MSIZE, NULL, 0, OsPathBaseName(NULL, 0, argvs[0]), '.');
+    optind = 2; // 查找参数从第3个开始，否则查不到（此变量是 getopt.h 全局变量）
+    OsPathSplitExt(ExecutableName, PATH_MSIZE, NULL, 0, OsPathBaseName(NULL, 0, argvs[0]), '.');
     if (!strcmp(argvs[1], MAINCMD_HELP)) {
-        printf(COMMANDUSAGE, executable_name);
+        printf(COMMANDUSAGE, ExecutableName);
         return EXIT_CODE_SUCCESS;
     } else if (!strcmp(argvs[1], MAINCMD_VERS)) {
-        printf(AUTHOR_INFO "\n" BUILT_INFO "\n", executable_name);
+        printf(AUTHOR_INFO "\n" BUILT_INFO "\n", ExecutableName);
         return EXIT_CODE_SUCCESS;
     } else if (!strcmp(argvs[1], MAINCMD_PACK)) {
-        while ((sub_opt = getopt(argc, argvs, SUBCMD_PACK)) != -1) {
-            switch (sub_opt) {
+        while ((SubOption = getopt(argc, argvs, SUBCMD_PACK)) != -1) {
+            switch (SubOption) {
             case 'p':
                 if (strlen(optarg) >= PATH_MSIZE) {
                     fprintf(stderr, MESSAGE_ERROR "路径太长：%s\n", optarg);
                     return EXIT_CODE_FAILURE;
                 }
-                strcpy(fpack_file_path, optarg);
+                strcpy(MainFIlePath, optarg);
                 break;
             case 't':
                 if (strlen(optarg) >= PATH_MSIZE) {
                     fprintf(stderr, MESSAGE_ERROR "路径太长：%s\n", optarg);
                     return EXIT_CODE_FAILURE;
                 }
-                strcpy(target_dir_path, optarg);
+                strcpy(TargetDirPath, optarg);
                 break;
             case 'a':
-                add = true;
+                Append = true;
                 break;
             case 's':
-                subs = true;
+                Recursion = true;
                 break;
             case 'o':
-                overwrite = true;
+                Overwrite = true;
                 break;
             default:
-                fprintf(stderr, MESSAGE_ERROR "没有此选项：-%c，请使用'%s -h'命令查看使用帮助。", optopt, executable_name);
+                fprintf(stderr, MESSAGE_ERROR "没有此选项：-%c，请使用'%s help'命令查看使用帮助。", optopt, ExecutableName);
                 return EXIT_CODE_FAILURE;
             }
         }
-        if (!*target_dir_path) {
+        if (!*TargetDirPath) {
             fprintf(stderr, MESSAGE_ERROR "未输入目标路径(应由[-t]选项指定)\n");
             return EXIT_CODE_FAILURE;
         }
-        if (!*fpack_file_path) {
-            OsPathAbsolutePath(fpack_file_path, PATH_MSIZE, target_dir_path);
-            OsPathDirName(fpack_file_path, PATH_MSIZE, fpack_file_path);
+        if (!*MainFIlePath) {
+            OsPathAbsolutePath(MainFIlePath, PATH_MSIZE, TargetDirPath);
+            OsPathDirName(MainFIlePath, PATH_MSIZE, MainFIlePath);
         }
-        if (!*fpack_file_path) {
+        if (!*MainFIlePath) {
             fprintf(stderr, MESSAGE_ERROR "未输入<.fp>路径(应由[-p]选项指定)\n");
             return EXIT_CODE_FAILURE;
         }
-        if (OsPathExists(fpack_file_path))
-            fpack = FilePackOpen(fpack_file_path);
+        if (OsPathExists(MainFIlePath))
+            pFilePack = FilePackOpen(MainFIlePath);
         else
-            fpack = FilePackMake(fpack_file_path, overwrite);
-        FilePackPack(target_dir_path, subs, fpack, add);
-        FilePackClose(fpack);
+            pFilePack = FilePackMake(MainFIlePath, Overwrite);
+        FilePackPack(TargetDirPath, Recursion, pFilePack, Append);
+        FilePackClose(pFilePack);
         return EXIT_CODE_SUCCESS;
     } else if (!strcmp(argvs[1], MAINCMD_EXTR)) {
-        while ((sub_opt = getopt(argc, argvs, SUBCMD_EXTR)) != -1) {
-            switch (sub_opt) {
+        while ((SubOption = getopt(argc, argvs, SUBCMD_EXTR)) != -1) {
+            switch (SubOption) {
             case 'n':
                 if (strlen(optarg) >= PATH_MSIZE) {
                     fprintf(stderr, MESSAGE_ERROR "输入的文件名过长\n");
                     return EXIT_CODE_FAILURE;
                 }
-                strcpy(extract_name, optarg);
+                strcpy(NameToExtract, optarg);
                 break;
             case 'p':
                 if (strlen(optarg) >= PATH_MSIZE) {
                     fprintf(stderr, MESSAGE_ERROR "路径太长：%s\n", optarg);
                     return EXIT_CODE_FAILURE;
                 }
-                strcpy(fpack_file_path, optarg);
+                strcpy(MainFIlePath, optarg);
                 break;
             case 't':
                 if (strlen(optarg) >= PATH_MSIZE) {
                     fprintf(stderr, MESSAGE_ERROR "路径太长：%s\n", optarg);
                     return EXIT_CODE_FAILURE;
                 }
-                strcpy(target_dir_path, optarg);
+                strcpy(TargetDirPath, optarg);
                 break;
             case 'o':
-                overwrite = true;
+                Overwrite = true;
                 break;
             default:
-                fprintf(stderr, MESSAGE_ERROR "没有此选项：-%c，请使用'%s -h'命令查看使用帮助。", optopt, executable_name);
+                fprintf(stderr, MESSAGE_ERROR "没有此选项：-%c，请使用'%s help'命令查看使用帮助。", optopt, ExecutableName);
                 return EXIT_CODE_FAILURE;
             }
         }
-        if (!*fpack_file_path) {
+        if (!*MainFIlePath) {
             fprintf(stderr, MESSAGE_ERROR "未输入主文件路径(应由[-p]选项指定)\n");
             return EXIT_CODE_FAILURE;
         }
-        if (!*target_dir_path)
-            strcpy(target_dir_path, PATH_CDIRS);
-        if (!*extract_name)
-            p_extr_name = NULL;
-        if (FilePackIsFakeJPEG(fpack_file_path))
-            fpack = FilePackOpenFakeJPEG(fpack_file_path);
+        if (!*TargetDirPath)
+            strcpy(TargetDirPath, PATH_CDIRS);
+        if (!*NameToExtract)
+            pNameToExtract = NULL;
+        if (FilePackIsFakeJPEG(MainFIlePath))
+            pFilePack = FilePackOpenFakeJPEG(MainFIlePath);
         else
-            fpack = FilePackOpen(fpack_file_path);
-        FilePackExtract(p_extr_name, target_dir_path, overwrite, fpack);
-        FilePackClose(fpack);
+            pFilePack = FilePackOpen(MainFIlePath);
+        FilePackExtract(pNameToExtract, TargetDirPath, Overwrite, pFilePack);
+        FilePackClose(pFilePack);
         return EXIT_CODE_SUCCESS;
     } else if (!strcmp(argvs[1], MAINCMD_INFO)) {
-        while ((sub_opt = getopt(argc, argvs, SUBCMD_INFO)) != -1) {
-            switch (sub_opt) {
+        while ((SubOption = getopt(argc, argvs, SUBCMD_INFO)) != -1) {
+            switch (SubOption) {
             case 'p':
                 if (strlen(optarg) >= PATH_MSIZE) {
                     fprintf(stderr, MESSAGE_ERROR "路径太长：%s\n", optarg);
                     return EXIT_CODE_FAILURE;
                 }
-                strcpy(fpack_file_path, optarg);
+                strcpy(MainFIlePath, optarg);
                 break;
             default:
-                fprintf(stderr, MESSAGE_ERROR "没有此选项：-%c，请使用'%s -h'命令查看使用帮助。", optopt, executable_name);
+                fprintf(stderr, MESSAGE_ERROR "没有此选项：-%c，请使用'%s help'命令查看使用帮助。", optopt, ExecutableName);
                 return EXIT_CODE_FAILURE;
             }
         }
-        if (!*fpack_file_path) {
+        if (!*MainFIlePath) {
             fprintf(stderr, MESSAGE_ERROR "未输入主文件路径(应由[-p]选项指定)\n");
             return EXIT_CODE_FAILURE;
         }
-        fpack = FilePackInfo(fpack_file_path);
-        FilePackClose(fpack);
+        pFilePack = FilePackInfo(MainFIlePath);
+        FilePackClose(pFilePack);
         return EXIT_CODE_SUCCESS;
     } else if (!strcmp(argvs[1], MAINCMD_FAKE)) {
-        while ((sub_opt = getopt(argc, argvs, SUBCMD_FAKE)) != -1) {
-            switch (sub_opt) {
+        while ((SubOption = getopt(argc, argvs, SUBCMD_FAKE)) != -1) {
+            switch (SubOption) {
             case 'p':
                 if (strlen(optarg) >= PATH_MSIZE) {
                     fprintf(stderr, MESSAGE_ERROR "路径太长：%s\n", optarg);
                     return EXIT_CODE_FAILURE;
                 }
-                strcpy(fpack_file_path, optarg);
+                strcpy(MainFIlePath, optarg);
                 break;
             case 't':
                 if (strlen(optarg) >= PATH_MSIZE) {
                     fprintf(stderr, MESSAGE_ERROR "路径太长：%s\n", optarg);
                     return EXIT_CODE_FAILURE;
                 }
-                strcpy(target_dir_path, optarg);
+                strcpy(TargetDirPath, optarg);
                 break;
             case 'a':
-                add = true;
+                Append = true;
                 break;
             case 's':
-                subs = true;
+                Recursion = true;
                 break;
             case 'o':
-                overwrite = true;
+                Overwrite = true;
                 break;
             case 'j':
                 if (strlen(optarg) >= PATH_MSIZE) {
                     fprintf(stderr, MESSAGE_ERROR "路径太长：%s\n", optarg);
                     return EXIT_CODE_FAILURE;
                 }
-                strcpy(jpeg_file_path, optarg);
+                strcpy(JPEGFilePath, optarg);
                 break;
             default:
-                fprintf(stderr, MESSAGE_ERROR "没有此选项：-%c，请使用'%s -h'命令查看使用帮助。", optopt, executable_name);
+                fprintf(stderr, MESSAGE_ERROR "没有此选项：-%c，请使用'%s help'命令查看使用帮助。", optopt, ExecutableName);
                 return EXIT_CODE_FAILURE;
             }
         }
-        if (!*target_dir_path) {
+        if (!*TargetDirPath) {
             fprintf(stderr, MESSAGE_ERROR "未输入目标路径(应由[-t]选项指定)\n");
             return EXIT_CODE_FAILURE;
         }
-        if (!*fpack_file_path) {
-            OsPathAbsolutePath(fpack_file_path, PATH_MSIZE, target_dir_path);
-            OsPathDirName(fpack_file_path, PATH_MSIZE, fpack_file_path);
+        if (!*MainFIlePath) {
+            OsPathAbsolutePath(MainFIlePath, PATH_MSIZE, TargetDirPath);
+            OsPathDirName(MainFIlePath, PATH_MSIZE, MainFIlePath);
         }
-        if (!*fpack_file_path) {
+        if (!*MainFIlePath) {
             fprintf(stderr, MESSAGE_ERROR "未输入<.fp>路径(应由[-p]选项指定)\n");
             return EXIT_CODE_FAILURE;
         }
-        if (!*jpeg_file_path) {
+        if (!*JPEGFilePath) {
             fprintf(stderr, MESSAGE_ERROR "未输入JPEG路径(应由[-j]选项指定)\n");
             return EXIT_CODE_FAILURE;
         }
-        if (OsPathExists(fpack_file_path)) {
+        if (OsPathExists(MainFIlePath)) {
             printf(MESSAGE_WARN "已存在<.fp>文件，[-j]及[-o]选项将不生效。\n");
-            fpack = FilePackOpenFakeJPEG(fpack_file_path);
+            pFilePack = FilePackOpenFakeJPEG(MainFIlePath);
         } else {
-            fpack = FilePackMakeFakeJPEG(fpack_file_path, jpeg_file_path, overwrite);
+            pFilePack = FilePackMakeFakeJPEG(MainFIlePath, JPEGFilePath, Overwrite);
         }
-        FilePackPack(target_dir_path, subs, fpack, add);
-        FilePackClose(fpack);
+        FilePackPack(TargetDirPath, Recursion, pFilePack, Append);
+        FilePackClose(pFilePack);
         return EXIT_CODE_SUCCESS;
     } else {
-        fprintf(stderr, MESSAGE_ERROR "没有此命令：%s，请使用'%s -h'命令查看使用帮助。\n", argvs[1], executable_name);
+        fprintf(stderr, MESSAGE_ERROR "没有此命令：%s，请使用'%s help'命令查看使用帮助。\n", argvs[1], ExecutableName);
         return EXIT_CODE_FAILURE;
     }
     return EXIT_CODE_SUCCESS;

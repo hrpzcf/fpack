@@ -664,7 +664,7 @@ FPACK_T *FilePackInfo(const char *fp_path) {
 }
 
 // 从<.fp>文件中提取子文件
-FPACK_T *FilePackExtract(const char *name, const char *save_path, int overwrite, FPACK_T *fpack) {
+FPACK_T *FilePackExtract(const char *ToExtract, const char *SavedPath, int Overwrite, FPACK_T *fpack) {
     int64_t index;  // 循环遍历子文件时的下标
     int64_t offset; // 子文件字段在主文件中的偏移
 #ifdef _WIN32
@@ -680,42 +680,42 @@ FPACK_T *FilePackExtract(const char *name, const char *save_path, int overwrite,
     } else {
         PRINT_ERROR_AND_ABORT("为文件读写缓冲区分配内存失败");
     }
-    if (!save_path || !*save_path)
-        save_path = PATH_CDIRS;
+    if (!SavedPath || !*SavedPath)
+        SavedPath = PATH_CDIRS;
     else {
-        if (!OsPathExists(save_path)) {
+        if (!OsPathExists(SavedPath)) {
             if (OsPathLastState()) {
-                fprintf(stderr, MESSAGE_ERROR "获取路径属性失败：%s\n", save_path);
+                fprintf(stderr, MESSAGE_ERROR "获取路径属性失败：%s\n", SavedPath);
                 exit(EXIT_CODE_FAILURE);
             }
-            if (OsPathMakeDIR(save_path)) {
-                fprintf(stderr, MESSAGE_ERROR "创建目录失败：%s\n", save_path);
+            if (OsPathMakeDIR(SavedPath)) {
+                fprintf(stderr, MESSAGE_ERROR "创建目录失败：%s\n", SavedPath);
                 exit(EXIT_CODE_FAILURE);
             }
-        } else if (!OsPathIsDirectory(save_path)) {
-            fprintf(stderr, MESSAGE_ERROR "保存目录已被文件名占用：%s\n", save_path);
+        } else if (!OsPathIsDirectory(SavedPath)) {
+            fprintf(stderr, MESSAGE_ERROR "保存目录已被文件名占用：%s\n", SavedPath);
             exit(EXIT_CODE_FAILURE);
         }
     }
 #ifdef _WIN32
-    if (name) {
-        strcpy(buf_cased1, name);
+    if (ToExtract) {
+        strcpy(buf_cased1, ToExtract);
         OsPathNormcase(buf_cased1);
     }
 #endif
     for (index = 0; index < fpack->head.count; ++index) {
-        if (name) {
+        if (ToExtract) {
 #ifdef _WIN32
             strcpy(buf_cased2, fpack->sheet[index].fname);
             if (strcmp(buf_cased1, OsPathNormcase(buf_cased2)))
                 continue;
 #else
-            if (strcmp(name, fpack->sheet[index].fname))
+            if (strcmp(ToExtract, fpack->sheet[index].fname))
                 continue;
 #endif
         }
         printf(MESSAGE_INFO "提取：%s\n", fpack->sheet[index].fname);
-        if (OsPathJoinPath(buf_sub_path, PATH_MSIZE, 2, save_path, fpack->sheet[index].fname)) {
+        if (OsPathJoinPath(buf_sub_path, PATH_MSIZE, 2, SavedPath, fpack->sheet[index].fname)) {
             printf(MESSAGE_WARN "跳过：拼接子文件完整路径失败\n");
             continue;
         }
@@ -736,7 +736,7 @@ FPACK_T *FilePackExtract(const char *name, const char *save_path, int overwrite,
                     printf(MESSAGE_WARN "跳过：文件路径已被目录占用：%s\n", buf_sub_path);
                     continue;
                 }
-                if (!overwrite) {
+                if (!Overwrite) {
                     printf(MESSAGE_WARN "跳过：文件已存在且未指定覆盖：%s\n", buf_sub_path);
                     continue;
                 }
